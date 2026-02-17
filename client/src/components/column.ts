@@ -10,6 +10,8 @@ export class KanbrawlColumn extends LitElement {
   @state() private showAddForm = false;
   @state() private newTitle = "";
   @state() private newDescription = "";
+  @state() private newPriority = "P1";
+  @state() private newAssignee = "";
   @state() private dragOver = false;
 
   static styles = css`
@@ -36,6 +38,7 @@ export class KanbrawlColumn extends LitElement {
       background: var(--bg-column-header);
       border-bottom: 1px solid var(--border-default);
       transition: background 0.3s ease, border-color 0.3s ease;
+      flex-shrink: 0;
     }
 
     .column-title {
@@ -96,6 +99,7 @@ export class KanbrawlColumn extends LitElement {
       padding: 12px;
       border-top: 1px solid var(--border-default);
       transition: border-color 0.3s ease;
+      flex-shrink: 0;
     }
 
     .add-btn {
@@ -300,6 +304,8 @@ export class KanbrawlColumn extends LitElement {
     this.showAddForm = !this.showAddForm;
     this.newTitle = "";
     this.newDescription = "";
+    this.newPriority = "P1";
+    this.newAssignee = "";
     if (this.showAddForm) {
       this.updateComplete.then(() => {
         this.shadowRoot?.querySelector<HTMLInputElement>('.add-form input')?.focus();
@@ -316,6 +322,8 @@ export class KanbrawlColumn extends LitElement {
           title: this.newTitle.trim(),
           description: this.newDescription.trim(),
           column: this.name,
+          priority: this.newPriority,
+          assignee: this.newAssignee.trim(),
         },
         bubbles: true,
         composed: true,
@@ -325,6 +333,8 @@ export class KanbrawlColumn extends LitElement {
     this.showAddForm = false;
     this.newTitle = "";
     this.newDescription = "";
+    this.newPriority = "P1";
+    this.newAssignee = "";
   }
 
   private handleKeydown(e: KeyboardEvent) {
@@ -376,6 +386,25 @@ export class KanbrawlColumn extends LitElement {
                     ).value)}
                   @keydown=${this.handleKeydown}
                 ></textarea>
+                <div class="form-row">
+                  <select
+                    .value=${this.newPriority}
+                    @change=${(e: Event) =>
+                      (this.newPriority = (e.target as HTMLSelectElement).value)}
+                  >
+                    <option value="P0">P0 – Critical</option>
+                    <option value="P1" selected>P1 – Normal</option>
+                    <option value="P2">P2 – Low</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Assignee (optional)"
+                    .value=${this.newAssignee}
+                    @input=${(e: InputEvent) =>
+                      (this.newAssignee = (e.target as HTMLInputElement).value)}
+                    @keydown=${this.handleKeydown}
+                  />
+                </div>
                 <div class="form-actions">
                   <button
                     class="btn-confirm"

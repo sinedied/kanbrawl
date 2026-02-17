@@ -22,6 +22,7 @@ export class KanbrawlBoard extends LitElement {
       overflow-x: auto;
       overflow-y: hidden;
       padding: 24px;
+      box-sizing: border-box;
     }
 
     .board {
@@ -35,6 +36,7 @@ export class KanbrawlBoard extends LitElement {
       flex: 1;
       min-width: 280px;
       max-width: 380px;
+      height: 100%;
     }
 
     .touch-ghost {
