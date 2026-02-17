@@ -149,6 +149,35 @@ export class KanbrawlApp extends LitElement {
       filter: drop-shadow(0 0 8px var(--accent-glow));
     }
 
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-inactive);
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.connected {
+      background: #00e676;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
+    }
+
+    .status-dot.reconnecting {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+
     h1 {
       font-family: 'Space Mono', monospace;
       font-size: 14px;
@@ -188,45 +217,6 @@ export class KanbrawlApp extends LitElement {
       border-color: var(--accent);
       color: var(--accent);
       background: var(--accent-bg);
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-family: 'Space Mono', monospace;
-      color: var(--status-text);
-      letter-spacing: 1px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--status-inactive);
-      transition: background 0.3s ease;
-    }
-
-    .status-dot.connected {
-      background: #00e676;
-      box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
-    }
-
-    .status-dot.reconnecting {
-      background: #ffa726;
-      box-shadow: 0 0 8px rgba(255, 167, 38, 0.5);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.3;
-      }
     }
 
     .error-bar {
@@ -432,10 +422,6 @@ export class KanbrawlApp extends LitElement {
       .status-dot {
         width: 6px;
         height: 6px;
-      }
-
-      .status span {
-        display: none;
       }
 
       .error-bar {
@@ -750,6 +736,10 @@ export class KanbrawlApp extends LitElement {
         <div class="logo">
           <span class="logo-icon">🥊</span>
           <h1>Kanbrawl</h1>
+          <div
+            class="status-dot ${this.connected ? 'connected' : 'reconnecting'}"
+            title=${this.connected ? 'Connected' : 'Reconnecting...'}
+          ></div>
         </div>
         <div class="header-controls">
           <kanbrawl-column-settings
@@ -763,14 +753,6 @@ export class KanbrawlApp extends LitElement {
           >
             ${this.theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <div class="status">
-            <div
-              class="status-dot ${this.connected
-                ? 'connected'
-                : 'reconnecting'}"
-            ></div>
-            ${this.connected ? 'LIVE' : 'RECONNECTING'}
-          </div>
         </div>
       </header>
       ${this.error ? html`<div class="error-bar">⚠ ${this.error}</div>` : null}
