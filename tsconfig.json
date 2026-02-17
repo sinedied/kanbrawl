@@ -15,5 +15,5 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/server/**/*"],
-  "exclude": ["node_modules", "dist", "client"]
+  "exclude": ["node_modules", "dist", "src/client"]
 }

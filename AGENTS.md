@@ -22,20 +22,20 @@ A minimal live kanban board for AI agents, powered by MCP (Model Context Protoco
 ## Project Structure
 
 ```
-src/server/        → Express + MCP server (TypeScript, compiled to dist/server/)
-  index.ts         → Main entry, Express app setup, MCP + SSE wiring
-  store.ts         → BoardStore class (read/write kanbrawl.json, emit events)
-  tools.ts         → MCP tool registrations (kanbrawl_* prefix)
-  api.ts           → REST API router (/api/board, /api/tasks)
-  sse.ts           → SSE client manager (broadcast board events)
-  types.ts         → Shared TypeScript interfaces
-
-client/            → Lit 3 web client (built by Vite to dist/client/)
-  src/app.ts       → Root <kanbrawl-app> component, SSE event handling
-  src/api.ts       → fetch-based REST API client
-  src/components/  → board.ts, column.ts, task.ts components
-  index.html       → Vite entry point
-  vite.config.ts   → Vite config with dev proxy to Express
+src/
+  server/            → Express + MCP server (TypeScript, compiled to dist/server/)
+    index.ts         → Main entry, Express app setup, MCP + SSE wiring
+    store.ts         → BoardStore class (read/write kanbrawl.json, emit events)
+    tools.ts         → MCP tool registrations (kanbrawl_* prefix)
+    api.ts           → REST API router (/api/board, /api/tasks)
+    sse.ts           → SSE client manager (broadcast board events)
+    types.ts         → Shared TypeScript interfaces
+  client/            → Lit 3 web client (built by Vite to dist/client/)
+    src/app.ts       → Root <kanbrawl-app> component, SSE event handling
+    src/api.ts       → fetch-based REST API client
+    src/components/  → board.ts, column.ts, task.ts components
+    index.html       → Vite entry point
+    vite.config.ts   → Vite config with dev proxy to Express
 ```
 
 ## Development Workflow

@@ -6,10 +6,10 @@
   "main": "dist/server/index.js",
   "scripts": {
     "build:server": "tsc",
-    "build:client": "vite build client",
+    "build:client": "vite build src/client",
     "build": "npm run build:server && npm run build:client",
     "dev:server": "tsx watch src/server/index.ts",
-    "dev:client": "vite dev client",
+    "dev:client": "vite dev src/client",
     "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",
     "start": "node dist/server/index.js",
     "clean": "rm -rf dist"

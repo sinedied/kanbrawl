@@ -117,20 +117,21 @@ npm run build:client   # Build client only
 ### Project Structure
 
 ```
-├── src/server/         # Express + MCP server
-│   ├── index.ts        # Main entry point
-│   ├── store.ts        # BoardStore (JSON file persistence)
-│   ├── tools.ts        # MCP tool registrations
-│   ├── api.ts          # REST API routes for web UI
-│   ├── sse.ts          # Server-Sent Events manager
-│   └── types.ts        # Shared TypeScript types
-├── client/             # Lit 3 web client
-│   ├── src/
-│   │   ├── app.ts      # Root app component + SSE handling
-│   │   ├── api.ts      # REST API client
-│   │   └── components/ # Board, Column, Task components
-│   ├── index.html      # Vite entry point
-│   └── vite.config.ts  # Vite configuration
+├── src/
+│   ├── server/         # Express + MCP server
+│   │   ├── index.ts    # Main entry point
+│   │   ├── store.ts    # BoardStore (JSON file persistence)
+│   │   ├── tools.ts    # MCP tool registrations
+│   │   ├── api.ts      # REST API routes for web UI
+│   │   ├── sse.ts      # Server-Sent Events manager
+│   │   └── types.ts    # Shared TypeScript types
+│   └── client/         # Lit 3 web client
+│       ├── src/
+│       │   ├── app.ts      # Root app component + SSE handling
+│       │   ├── api.ts      # REST API client
+│       │   └── components/ # Board, Column, Task components
+│       ├── index.html      # Vite entry point
+│       └── vite.config.ts  # Vite configuration
 ├── kanbrawl.json       # Board config + data (auto-created)
 └── package.json
 ```
