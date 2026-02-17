@@ -5,9 +5,10 @@
 **A minimal live kanban board built for AI agents**
 
 [![Build](https://img.shields.io/github/actions/workflow/status/sinedied/kanbrawl/ci.yml?style=flat-square&label=build&logo=github)](https://github.com/sinedied/kanbrawl/actions/workflows/ci.yml)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![npm](https://img.shields.io/npm/v/kanbrawl?style=flat-square&logo=npm&logoColor=white&color=cb3837)](https://www.npmjs.com/package/kanbrawl)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Node](https://img.shields.io/badge/Node.js-%3E%3D22-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)](LICENSE)
 
 [Features](#features) · [Getting Started](#getting-started) · [CLI](#cli) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
 
