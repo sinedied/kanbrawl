@@ -29,8 +29,8 @@ export class KanbrawlTask extends LitElement {
     }
 
     .task-card {
-      background: #16162a;
-      border: 1px solid #22223a;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
       border-radius: 8px;
       padding: 14px;
       cursor: default;
@@ -39,8 +39,8 @@ export class KanbrawlTask extends LitElement {
     }
 
     .task-card:hover {
-      border-color: #33334e;
-      background: #1a1a30;
+      border-color: var(--border-hover);
+      background: var(--bg-elevated-hover);
     }
 
     .task-card:hover .task-actions {
@@ -50,7 +50,7 @@ export class KanbrawlTask extends LitElement {
     .task-title {
       font-size: 14px;
       font-weight: 600;
-      color: #e8e6e3;
+      color: var(--text-primary);
       margin-bottom: 4px;
       line-height: 1.4;
       word-break: break-word;
@@ -58,7 +58,7 @@ export class KanbrawlTask extends LitElement {
 
     .task-description {
       font-size: 12px;
-      color: #7a7a94;
+      color: var(--text-muted);
       line-height: 1.5;
       margin-bottom: 8px;
       word-break: break-word;
@@ -74,7 +74,7 @@ export class KanbrawlTask extends LitElement {
     .task-time {
       font-family: 'Space Mono', monospace;
       font-size: 10px;
-      color: #3a3a52;
+      color: var(--text-dimmed);
       letter-spacing: 0.5px;
     }
 
@@ -88,7 +88,7 @@ export class KanbrawlTask extends LitElement {
     .action-btn {
       background: none;
       border: none;
-      color: #5a5a7a;
+      color: var(--text-muted);
       cursor: pointer;
       padding: 4px 6px;
       border-radius: 4px;
@@ -98,13 +98,13 @@ export class KanbrawlTask extends LitElement {
     }
 
     .action-btn:hover {
-      background: #22223a;
-      color: #b0b0cc;
+      background: var(--border-subtle);
+      color: var(--text-secondary);
     }
 
     .action-btn.delete:hover {
-      background: #2d1216;
-      color: #ff6b6b;
+      background: var(--delete-bg);
+      color: var(--delete-text);
     }
 
     /* Move menu */
@@ -113,11 +113,11 @@ export class KanbrawlTask extends LitElement {
       top: 100%;
       right: 8px;
       z-index: 10;
-      background: #1a1a2e;
-      border: 1px solid #2a2a3e;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-input);
       border-radius: 8px;
       padding: 4px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 24px var(--shadow);
       min-width: 140px;
       margin-top: 4px;
     }
@@ -128,7 +128,7 @@ export class KanbrawlTask extends LitElement {
       padding: 8px 12px;
       background: none;
       border: none;
-      color: #b0b0cc;
+      color: var(--text-secondary);
       font-family: 'DM Sans', sans-serif;
       font-size: 12px;
       text-align: left;
@@ -138,18 +138,18 @@ export class KanbrawlTask extends LitElement {
     }
 
     .move-option:hover {
-      background: #22223a;
-      color: #ff6b35;
+      background: var(--border-subtle);
+      color: var(--accent);
     }
 
     .move-option.current {
-      color: #4a4a6a;
+      color: var(--text-placeholder);
       cursor: default;
     }
 
     .move-option.current:hover {
       background: none;
-      color: #4a4a6a;
+      color: var(--text-placeholder);
     }
 
     /* Edit form */
@@ -163,19 +163,20 @@ export class KanbrawlTask extends LitElement {
     .edit-form textarea {
       width: 100%;
       padding: 8px 10px;
-      background: #0e0e18;
-      border: 1px solid #2a2a3e;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
       border-radius: 4px;
-      color: #e8e6e3;
+      color: var(--text-primary);
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       outline: none;
       box-sizing: border-box;
+      transition: border-color 0.2s ease, background 0.3s ease;
     }
 
     .edit-form input:focus,
     .edit-form textarea:focus {
-      border-color: #ff6b35;
+      border-color: var(--accent);
     }
 
     .edit-form textarea {
@@ -197,24 +198,25 @@ export class KanbrawlTask extends LitElement {
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .btn-save {
-      background: #ff6b35;
-      color: #0a0a0f;
+      background: var(--accent);
+      color: #fff;
     }
 
     .btn-save:hover {
-      background: #ff8c61;
+      background: var(--accent-hover);
     }
 
     .btn-edit-cancel {
-      background: #1e1e30;
-      color: #8888a8;
+      background: var(--btn-secondary-bg);
+      color: var(--text-secondary);
     }
 
     .btn-edit-cancel:hover {
-      background: #2a2a3e;
+      background: var(--btn-secondary-hover);
     }
   `;
 

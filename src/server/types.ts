@@ -10,6 +10,7 @@ export interface Task {
 export interface KanbrawlData {
   columns: string[];
   tasks: Task[];
+  theme?: "light" | "dark";
 }
 
 export type BoardEvent =

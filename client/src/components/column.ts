@@ -15,10 +15,11 @@ export class KanbrawlColumn extends LitElement {
     :host {
       display: flex;
       flex-direction: column;
-      background: #12121c;
-      border: 1px solid #1e1e30;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
       border-radius: 12px;
       overflow: hidden;
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .column-header {
@@ -26,8 +27,9 @@ export class KanbrawlColumn extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 16px 18px;
-      background: linear-gradient(180deg, #16162a 0%, #12121c 100%);
-      border-bottom: 1px solid #1e1e30;
+      background: var(--bg-column-header);
+      border-bottom: 1px solid var(--border-default);
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .column-title {
@@ -36,18 +38,19 @@ export class KanbrawlColumn extends LitElement {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 2px;
-      color: #8888a8;
+      color: var(--text-secondary);
     }
 
     .task-count {
       font-family: 'Space Mono', monospace;
       font-size: 11px;
-      color: #4a4a6a;
-      background: #1a1a2e;
+      color: var(--count-text);
+      background: var(--count-bg);
       padding: 3px 8px;
       border-radius: 10px;
       min-width: 24px;
       text-align: center;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     .tasks-list {
@@ -68,7 +71,7 @@ export class KanbrawlColumn extends LitElement {
     }
 
     .tasks-list::-webkit-scrollbar-thumb {
-      background: #2a2a3e;
+      background: var(--scrollbar);
       border-radius: 2px;
     }
 
@@ -77,23 +80,24 @@ export class KanbrawlColumn extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 32px 16px;
-      color: #3a3a4e;
+      color: var(--empty-text);
       font-size: 13px;
       font-style: italic;
     }
 
     .add-area {
       padding: 12px;
-      border-top: 1px solid #1e1e30;
+      border-top: 1px solid var(--border-default);
+      transition: border-color 0.3s ease;
     }
 
     .add-btn {
       width: 100%;
       padding: 10px;
       background: transparent;
-      border: 1px dashed #2a2a3e;
+      border: 1px dashed var(--border-input);
       border-radius: 8px;
-      color: #5a5a7a;
+      color: var(--text-muted);
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       cursor: pointer;
@@ -101,9 +105,9 @@ export class KanbrawlColumn extends LitElement {
     }
 
     .add-btn:hover {
-      border-color: #ff6b35;
-      color: #ff6b35;
-      background: rgba(255, 107, 53, 0.05);
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg);
     }
 
     .add-form {
@@ -116,20 +120,20 @@ export class KanbrawlColumn extends LitElement {
     .add-form textarea {
       width: 100%;
       padding: 10px 12px;
-      background: #0e0e18;
-      border: 1px solid #2a2a3e;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
       border-radius: 6px;
-      color: #e8e6e3;
+      color: var(--text-primary);
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       outline: none;
-      transition: border-color 0.2s ease;
+      transition: border-color 0.2s ease, background 0.3s ease;
       box-sizing: border-box;
     }
 
     .add-form input:focus,
     .add-form textarea:focus {
-      border-color: #ff6b35;
+      border-color: var(--accent);
     }
 
     .add-form textarea {
@@ -155,27 +159,27 @@ export class KanbrawlColumn extends LitElement {
     }
 
     .btn-confirm {
-      background: #ff6b35;
-      color: #0a0a0f;
+      background: var(--accent);
+      color: #fff;
     }
 
     .btn-confirm:hover {
-      background: #ff8c61;
+      background: var(--accent-hover);
     }
 
     .btn-confirm:disabled {
-      background: #3a3a4e;
-      color: #6b6b7b;
+      background: var(--btn-disabled-bg);
+      color: var(--btn-disabled-text);
       cursor: not-allowed;
     }
 
     .btn-cancel {
-      background: #1e1e30;
-      color: #8888a8;
+      background: var(--btn-secondary-bg);
+      color: var(--text-secondary);
     }
 
     .btn-cancel:hover {
-      background: #2a2a3e;
+      background: var(--btn-secondary-hover);
     }
   `;
 

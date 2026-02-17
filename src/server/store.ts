@@ -22,6 +22,7 @@ export class BoardStore {
       return {
         columns: parsed.columns ?? DEFAULT_COLUMNS,
         tasks: parsed.tasks ?? [],
+        ...(parsed.theme ? { theme: parsed.theme } : {}),
       };
     }
     const defaults: KanbrawlData = {

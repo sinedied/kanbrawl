@@ -3,11 +3,14 @@ import { customElement, state } from "lit/decorators.js";
 import type { Board, Task } from "./types.js";
 import { fetchBoard, createTask, updateTask, deleteTask } from "./api.js";
 
+type Theme = "light" | "dark";
+
 @customElement("kanbrawl-app")
 export class KanbrawlApp extends LitElement {
   @state() private board: Board = { columns: [], tasks: [] };
   @state() private connected = false;
   @state() private error: string | null = null;
+  @state() private theme: Theme = "dark";
 
   private eventSource: EventSource | null = null;
 
@@ -16,8 +19,90 @@ export class KanbrawlApp extends LitElement {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: #0a0a0f;
-      color: #e8e6e3;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+
+      /* ── Dark theme (default) ── */
+      --bg-base: #0a0a0f;
+      --bg-surface: #12121c;
+      --bg-surface-hover: #1a1a30;
+      --bg-elevated: #16162a;
+      --bg-elevated-hover: #1a1a30;
+      --bg-input: #0e0e18;
+      --bg-header: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
+      --bg-column-header: linear-gradient(180deg, #16162a 0%, #12121c 100%);
+      --border-default: #1e1e30;
+      --border-subtle: #22223a;
+      --border-hover: #33334e;
+      --border-input: #2a2a3e;
+      --text-primary: #e8e6e3;
+      --text-secondary: #8888a8;
+      --text-muted: #5a5a7a;
+      --text-dimmed: #3a3a52;
+      --text-placeholder: #4a4a6a;
+      --accent: #ff6b35;
+      --accent-hover: #ff8c61;
+      --accent-glow: rgba(255, 107, 53, 0.4);
+      --accent-bg: rgba(255, 107, 53, 0.05);
+      --accent-gradient: linear-gradient(135deg, #ff6b35, #ff8c61);
+      --btn-secondary-bg: #1e1e30;
+      --btn-secondary-hover: #2a2a3e;
+      --btn-disabled-bg: #3a3a4e;
+      --btn-disabled-text: #6b6b7b;
+      --status-text: #6b6b7b;
+      --status-inactive: #3d3d4d;
+      --error-bg: #2d1216;
+      --error-border: #5c2028;
+      --error-text: #ff6b6b;
+      --delete-bg: #2d1216;
+      --delete-text: #ff6b6b;
+      --scrollbar: #2a2a3e;
+      --shadow: rgba(0, 0, 0, 0.4);
+      --count-bg: #1a1a2e;
+      --count-text: #4a4a6a;
+      --empty-text: #3a3a4e;
+    }
+
+    :host([data-theme="light"]) {
+      --bg-base: #f2f0ed;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f8f7f6;
+      --bg-elevated: #ffffff;
+      --bg-elevated-hover: #f5f4f2;
+      --bg-input: #f8f7f5;
+      --bg-header: linear-gradient(135deg, #ffffff 0%, #f5f3f0 100%);
+      --bg-column-header: linear-gradient(180deg, #fafaf8 0%, #ffffff 100%);
+      --border-default: #e0ddd8;
+      --border-subtle: #e8e5e0;
+      --border-hover: #d0ccc5;
+      --border-input: #d8d4ce;
+      --text-primary: #1a1a1a;
+      --text-secondary: #5a5a68;
+      --text-muted: #8a8a98;
+      --text-dimmed: #aaa8b0;
+      --text-placeholder: #b0aeb8;
+      --accent: #e85a2a;
+      --accent-hover: #d04e20;
+      --accent-glow: rgba(232, 90, 42, 0.25);
+      --accent-bg: rgba(232, 90, 42, 0.06);
+      --accent-gradient: linear-gradient(135deg, #e85a2a, #ff7a48);
+      --btn-secondary-bg: #eae8e4;
+      --btn-secondary-hover: #dddad5;
+      --btn-disabled-bg: #d8d5d0;
+      --btn-disabled-text: #a0a0a8;
+      --status-text: #8a8a98;
+      --status-inactive: #c8c5c0;
+      --error-bg: #fce8e8;
+      --error-border: #f0b8b8;
+      --error-text: #c0392b;
+      --delete-bg: #fce8e8;
+      --delete-text: #c0392b;
+      --scrollbar: #d0ccc5;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --count-bg: #f0eeea;
+      --count-text: #8a8a98;
+      --empty-text: #b0aeb8;
     }
 
     header {
@@ -25,9 +110,10 @@ export class KanbrawlApp extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 16px 28px;
-      background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
-      border-bottom: 1px solid #2a2a3e;
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-input);
       flex-shrink: 0;
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .logo {
@@ -38,7 +124,7 @@ export class KanbrawlApp extends LitElement {
 
     .logo-icon {
       font-size: 28px;
-      filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.4));
+      filter: drop-shadow(0 0 8px var(--accent-glow));
     }
 
     h1 {
@@ -47,10 +133,37 @@ export class KanbrawlApp extends LitElement {
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
-      background: linear-gradient(135deg, #ff6b35, #ff8c61);
+      background: var(--accent-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border-input);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg);
     }
 
     .status {
@@ -59,7 +172,7 @@ export class KanbrawlApp extends LitElement {
       gap: 8px;
       font-size: 12px;
       font-family: 'Space Mono', monospace;
-      color: #6b6b7b;
+      color: var(--status-text);
       letter-spacing: 1px;
     }
 
@@ -67,7 +180,7 @@ export class KanbrawlApp extends LitElement {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #3d3d4d;
+      background: var(--status-inactive);
       transition: background 0.3s ease;
     }
 
@@ -77,12 +190,13 @@ export class KanbrawlApp extends LitElement {
     }
 
     .error-bar {
-      background: #2d1216;
-      border-bottom: 1px solid #5c2028;
+      background: var(--error-bg);
+      border-bottom: 1px solid var(--error-border);
       padding: 8px 28px;
       font-size: 13px;
-      color: #ff6b6b;
+      color: var(--error-text);
       font-family: 'Space Mono', monospace;
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     main {
@@ -93,6 +207,7 @@ export class KanbrawlApp extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.initTheme();
     this.loadBoard();
     this.connectSSE();
   }
@@ -102,10 +217,47 @@ export class KanbrawlApp extends LitElement {
     this.eventSource?.close();
   }
 
+  private initTheme() {
+    const stored = localStorage.getItem("kanbrawl-theme") as Theme | null;
+    if (stored) {
+      this.theme = stored;
+    } else {
+      this.theme = this.getDefaultTheme();
+    }
+    this.applyTheme();
+  }
+
+  private getDefaultTheme(): Theme {
+    // Config from kanbrawl.json takes precedence over system preference
+    if (this.board.theme) return this.board.theme;
+    return window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
+  }
+
+  private toggleTheme() {
+    this.theme = this.theme === "dark" ? "light" : "dark";
+    localStorage.setItem("kanbrawl-theme", this.theme);
+    this.applyTheme();
+  }
+
+  private applyTheme() {
+    this.setAttribute("data-theme", this.theme);
+    document.body.style.background =
+      this.theme === "light" ? "#f2f0ed" : "#0a0a0f";
+    document.body.style.color =
+      this.theme === "light" ? "#1a1a1a" : "#e8e6e3";
+  }
+
   private async loadBoard() {
     try {
       this.board = await fetchBoard();
       this.error = null;
+      // Re-evaluate theme now that we have the server config
+      if (!localStorage.getItem("kanbrawl-theme") && this.board.theme) {
+        this.theme = this.board.theme;
+        this.applyTheme();
+      }
     } catch (e) {
       this.error = e instanceof Error ? e.message : "Failed to load board";
     }
@@ -208,9 +360,18 @@ export class KanbrawlApp extends LitElement {
           <span class="logo-icon">🥊</span>
           <h1>Kanbrawl</h1>
         </div>
-        <div class="status">
-          <div class="status-dot ${this.connected ? "connected" : ""}"></div>
-          ${this.connected ? "LIVE" : "CONNECTING"}
+        <div class="header-controls">
+          <button
+            class="theme-toggle"
+            title="Toggle theme"
+            @click=${this.toggleTheme}
+          >
+            ${this.theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          <div class="status">
+            <div class="status-dot ${this.connected ? "connected" : ""}"></div>
+            ${this.connected ? "LIVE" : "CONNECTING"}
+          </div>
         </div>
       </header>
       ${this.error

@@ -64,6 +64,7 @@ All configuration and data is stored in a single `kanbrawl.json` file, auto-crea
 ```json
 {
   "columns": ["Todo", "In progress", "Blocked", "Done"],
+  "theme": "dark",
   "tasks": []
 }
 ```
@@ -71,6 +72,7 @@ All configuration and data is stored in a single `kanbrawl.json` file, auto-crea
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `columns` | `string[]` | `["Todo", "In progress", "Blocked", "Done"]` | Column names and order |
+| `theme` | `"light"` \| `"dark"` | System preference | UI theme override |
 | `tasks` | `Task[]` | `[]` | Task objects (managed by the app) |
 
 Edit the `columns` array to customize your board. Changes take effect on restart.

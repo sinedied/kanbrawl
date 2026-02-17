@@ -10,4 +10,5 @@ export interface Task {
 export interface Board {
   columns: string[];
   tasks: Task[];
+  theme?: "light" | "dark";
 }

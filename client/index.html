@@ -13,8 +13,9 @@
       html, body { height: 100%; overflow: hidden; }
       body {
         font-family: 'DM Sans', sans-serif;
-        background: #0a0a0f;
-        color: #e8e6e3;
+        background: var(--bg-base, #0a0a0f);
+        color: var(--text-primary, #e8e6e3);
+        transition: background 0.3s ease, color 0.3s ease;
       }
     </style>
     <script type="module" src="/src/index.ts"></script>
