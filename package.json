@@ -1,6 +1,6 @@
 {
   "name": "kanbrawl",
-  "version": "0.0.0-dev",
+  "version": "1.0.0",
   "description": "A minimal live kanban board for AI agents, powered by MCP",
   "type": "module",
   "license": "MIT",
