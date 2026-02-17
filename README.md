@@ -4,6 +4,7 @@
 
 **A minimal live kanban board built for AI agents**
 
+[![Build](https://img.shields.io/github/actions/workflow/status/sinedied/kanbrawl/ci.yml?style=flat-square&label=build&logo=github)](https://github.com/sinedied/kanbrawl/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Express](https://img.shields.io/badge/Express-5-000?style=flat-square&logo=express)](https://expressjs.com)
 [![Lit](https://img.shields.io/badge/Lit-3-324fff?style=flat-square&logo=lit&logoColor=white)](https://lit.dev)
