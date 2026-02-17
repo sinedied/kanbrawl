@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Express](https://img.shields.io/badge/Express-5-000?style=flat-square&logo=express)](https://expressjs.com)
 [![Lit](https://img.shields.io/badge/Lit-3-324fff?style=flat-square&logo=lit&logoColor=white)](https://lit.dev)
-[![Node](https://img.shields.io/badge/Node.js-%3E%3D18-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D22-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
 [Features](#features) · [Getting Started](#getting-started) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
@@ -34,7 +34,7 @@ AI agents manage tasks on a kanban board through [MCP](https://modelcontextproto
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org) >= 18
+- [Node.js](https://nodejs.org) >= 22
 
 ### Quick Start
 

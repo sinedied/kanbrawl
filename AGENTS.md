@@ -12,7 +12,7 @@ A minimal live kanban board for AI agents, powered by MCP (Model Context Protoco
 
 ## Key Technologies and Frameworks
 
-- **Runtime**: Node.js >= 18, TypeScript 5.7 (ES2022, Node16 modules)
+- **Runtime**: Node.js >= 22, TypeScript 5.7 (ES2024, Node16 modules)
 - **Server**: Express 5, `@modelcontextprotocol/sdk` (Streamable HTTP transport)
 - **Client**: Lit 3 (web components), Vite 6
 - **Validation**: Zod for MCP tool input schemas
