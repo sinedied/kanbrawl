@@ -109,7 +109,7 @@ export class KanbrawlApp extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 28px;
+      padding: 6px 16px;
       background: var(--bg-header);
       border-bottom: 1px solid var(--border-input);
       flex-shrink: 0;
@@ -119,17 +119,17 @@ export class KanbrawlApp extends LitElement {
     .logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .logo-icon {
-      font-size: 28px;
+      font-size: 18px;
       filter: drop-shadow(0 0 8px var(--accent-glow));
     }
 
     h1 {
       font-family: 'Space Mono', monospace;
-      font-size: 22px;
+      font-size: 14px;
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
@@ -206,20 +206,34 @@ export class KanbrawlApp extends LitElement {
 
     @media (max-width: 600px) {
       header {
-        padding: 12px 16px;
+        padding: 4px 10px;
       }
 
       h1 {
-        font-size: 16px;
-        letter-spacing: 2px;
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
+
+      .logo {
+        gap: 6px;
       }
 
       .logo-icon {
-        font-size: 22px;
+        font-size: 14px;
       }
 
       .header-controls {
-        gap: 10px;
+        gap: 8px;
+      }
+
+      .theme-toggle {
+        padding: 4px 6px;
+        font-size: 14px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
       }
 
       .status span {
@@ -227,7 +241,8 @@ export class KanbrawlApp extends LitElement {
       }
 
       .error-bar {
-        padding: 8px 16px;
+        padding: 6px 10px;
+        font-size: 11px;
       }
 
       main {
