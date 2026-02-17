@@ -43,7 +43,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
-    "prepare": "npm run build",
     "release:check": "semantic-release --dry-run"
   },
   "engines": {
