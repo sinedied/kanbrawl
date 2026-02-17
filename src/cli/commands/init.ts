@@ -64,26 +64,16 @@ const MCP_CONFIGS: McpConfig[] = [
 ];
 
 const AGENTS_MD_SECTION = `
-## Kanbrawl - AI Task Board
+## Task Management
 
-This project uses [Kanbrawl](https://github.com/sinedied/kanbrawl) for task management via MCP.
+Use the Kanbrawl MCP tools for task management when working on this project.
 
-### Available MCP Tools
+### Workflow
 
-- \`create_task\` — Create a new task (title, description, column, priority, assignee)
-- \`list_tasks\` — List tasks, optionally filtered by column and priority
-- \`update_task\` — Update task title, description, priority, or assignee
-- \`move_task\` — Move a task to a different column
-- \`delete_task\` — Permanently delete a task
-- \`get_columns\` — List board columns with task counts
-
-### Workflow Tips
-
-- Check existing tasks with \`list_tasks\` before creating duplicates
-- Use \`get_columns\` to discover available columns
+- Check existing tasks with \`list_tasks\` before creating to avoid duplicates
 - Move tasks between columns with \`move_task\` to track progress
-- Set your name as assignee when working on a task
-- Priorities: P0 (critical), P1 (default), P2 (low)
+- Always set your name as assignee when working on a task
+- When building a plan, include task creation in it
 `;
 
 export function writeConfigFile(config: McpConfig, cwd: string): void {
@@ -118,7 +108,7 @@ export function updateAgentsMd(cwd: string): void {
 
   if (existsSync(agentsPath)) {
     const content = readFileSync(agentsPath, 'utf8');
-    if (content.includes('Kanbrawl - AI Task Board')) {
+    if (content.includes('Kanbrawl MCP tools')) {
       console.log(
         '  ⏭️  AGENTS.md already contains Kanbrawl section, skipping',
       );

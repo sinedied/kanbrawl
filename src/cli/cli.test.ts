@@ -162,8 +162,8 @@ describe('init helpers', () => {
       updateAgentsMd(dir);
       const content = readFileSync(join(dir, 'AGENTS.md'), 'utf8');
       expect(content).toContain('# AGENTS.md');
-      expect(content).toContain('Kanbrawl - AI Task Board');
-      expect(content).toContain('create_task');
+      expect(content).toContain('Kanbrawl MCP tools');
+      expect(content).toContain('list_tasks');
     });
 
     it('appends to existing AGENTS.md', () => {
@@ -172,12 +172,12 @@ describe('init helpers', () => {
       const content = readFileSync(join(dir, 'AGENTS.md'), 'utf8');
       expect(content).toContain('# My Project');
       expect(content).toContain('Existing content');
-      expect(content).toContain('Kanbrawl - AI Task Board');
+      expect(content).toContain('Kanbrawl MCP tools');
     });
 
     it('skips if Kanbrawl section already exists', () => {
       const original =
-        '# Project\n\n## Kanbrawl - AI Task Board\n\nAlready here';
+        '# Project\n\nUse the Kanbrawl MCP tools\n\nAlready here';
       writeFileSync(join(dir, 'AGENTS.md'), original);
       updateAgentsMd(dir);
       const content = readFileSync(join(dir, 'AGENTS.md'), 'utf8');
