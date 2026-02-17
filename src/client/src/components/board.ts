@@ -21,13 +21,13 @@ export class KanbrawlBoard extends LitElement {
       height: 100%;
       overflow-x: auto;
       overflow-y: hidden;
-      padding: 24px;
+      padding: 12px;
       box-sizing: border-box;
     }
 
     .board {
       display: flex;
-      gap: 20px;
+      gap: 12px;
       height: 100%;
       min-width: min-content;
     }
@@ -66,10 +66,6 @@ export class KanbrawlBoard extends LitElement {
     }
 
     @media (max-width: 768px) {
-      :host {
-        padding: 16px;
-      }
-
       kanbrawl-column {
         min-width: 240px;
       }
@@ -77,7 +73,6 @@ export class KanbrawlBoard extends LitElement {
 
     @media (max-width: 600px) {
       :host {
-        padding: 12px;
         height: auto;
         overflow-x: hidden;
         overflow-y: visible;
@@ -87,7 +82,7 @@ export class KanbrawlBoard extends LitElement {
         flex-direction: column;
         min-width: 0;
         height: auto;
-        gap: 16px;
+        gap: 12px;
       }
 
       kanbrawl-column {
