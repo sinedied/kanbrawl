@@ -23,19 +23,21 @@
   ],
   "main": "dist/server/index.js",
   "bin": {
-    "kanbrawl": "dist/server/index.js"
+    "kanbrawl": "bin/cli.js",
+    "kb": "bin/cli.js"
   },
   "files": [
+    "bin/",
     "dist/"
   ],
   "scripts": {
     "build:server": "tsc",
     "build:client": "vite build src/client",
     "build": "npm run build:server && npm run build:client",
-    "dev:server": "tsx watch src/server/index.ts",
+    "dev:server": "tsx watch src/cli/cli.ts",
     "dev:client": "vite dev src/client",
     "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",
-    "start": "node dist/server/index.js",
+    "start": "node bin/cli.js",
     "lint": "xo",
     "lint:fix": "xo --fix",
     "test": "vitest run",
@@ -52,7 +54,9 @@
     "branch": "main"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.2.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "commander": "^14.0.3",
     "express": "^5.1.0",
     "lit": "^3.2.1",
     "uuid": "^11.1.0",

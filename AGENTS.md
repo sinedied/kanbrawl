@@ -24,12 +24,18 @@ A minimal live kanban board for AI agents, powered by MCP (Model Context Protoco
 ```
 src/
   server/            → Express + MCP server (TypeScript, compiled to dist/server/)
-    index.ts         → Main entry, Express app setup, MCP + SSE wiring
+    index.ts         → Express app setup, MCP + SSE wiring, startServer()
     store.ts         → BoardStore class (read/write kanbrawl.json, emit events)
     tools.ts         → MCP tool registrations
     api.ts           → REST API router (/api/board, /api/tasks)
     sse.ts           → SSE client manager (broadcast board events)
     types.ts         → Shared TypeScript interfaces
+  cli/               → CLI entry point and commands (compiled to dist/cli/)
+    cli.ts           → CLI entry point (commander-based, shebang)
+    commands/        → CLI subcommand handlers
+      start.ts       → start command (HTTP server or --stdio MCP transport)
+      task.ts        → task command (create/update tasks via BoardStore)
+      init.ts        → init command (interactive AI tool config setup)
   client/            → Lit 3 web client (built by Vite to dist/client/)
     src/app.ts       → Root <kanbrawl-app> component, SSE event handling
     src/api.ts       → fetch-based REST API client
@@ -98,3 +104,38 @@ npm run clean        # Remove dist/
 - Column changes require server restart (columns are read at startup)
 - MCP transport is stateless (new transport per request, no sessions)
 - The web UI is a live viewer AND editor — both humans and agents can modify tasks
+
+## CLI
+
+The `kanbrawl` CLI (also aliased as `kb`) provides the following commands:
+
+```bash
+kanbrawl                    # Start HTTP server (default)
+kanbrawl start              # Start HTTP server
+kanbrawl start --stdio      # Start MCP server over stdio transport
+kanbrawl task "title"       # Create a task
+kanbrawl task "title" -u    # Update existing task by title match
+kanbrawl init               # Interactive setup for AI tools
+kanbrawl --version          # Show version
+kanbrawl --help             # Show help
+```
+
+### `task` command options
+
+- `-d, --description <text>` — Task description
+- `-c, --column <name>` — Target column
+- `-p, --priority <level>` — Priority (0, 1, or 2; default 1)
+- `-a, --assignee <name>` — Task assignee
+- `-u, --update` — Update existing task by title match instead of creating
+
+### `init` command
+
+Interactive setup that:
+1. Prompts to select AI tools (VS Code Copilot, Claude Code, Cursor, Gemini CLI, Windsurf)
+2. Generates MCP config files with stdio transport for each selected tool
+3. Creates `kanbrawl.json` with default columns if missing
+4. Appends a Kanbrawl usage section to `AGENTS.md`
+
+### Stdio MCP transport
+
+Use `kanbrawl start --stdio` to run a stdio-based MCP server (no HTTP, no web UI). This is the transport used in generated MCP config files for AI tools (`npx -y kanbrawl start --stdio`).
