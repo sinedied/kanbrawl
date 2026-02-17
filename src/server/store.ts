@@ -159,4 +159,32 @@ export class BoardStore {
     this.save();
     this.emit({ type: "task_deleted", taskId: id });
   }
+
+  updateColumns(columns: string[]): string[] {
+    if (!Array.isArray(columns) || columns.length === 0) {
+      throw new Error("At least one column is required.");
+    }
+    const trimmed = columns.map((c) => c.trim()).filter((c) => c.length > 0);
+    if (trimmed.length === 0) {
+      throw new Error("At least one non-empty column name is required.");
+    }
+    const unique = [...new Set(trimmed)];
+    const removedColumns = this.data.columns.filter((c) => !unique.includes(c));
+
+    // Move tasks from removed columns to the first remaining column
+    if (removedColumns.length > 0) {
+      const fallback = unique[0];
+      for (const task of this.data.tasks) {
+        if (removedColumns.includes(task.column)) {
+          task.column = fallback;
+          task.updatedAt = new Date().toISOString();
+        }
+      }
+    }
+
+    this.data.columns = unique;
+    this.save();
+    this.emit({ type: "columns_updated", columns: [...unique] });
+    return [...unique];
+  }
 }

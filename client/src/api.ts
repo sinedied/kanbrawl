@@ -50,3 +50,16 @@ export async function deleteTask(id: string) {
     throw new Error(err.error ?? "Failed to delete task");
   }
 }
+
+export async function updateColumns(columns: string[]) {
+  const res = await fetch(`${API_BASE}/api/columns`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ columns }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error ?? "Failed to update columns");
+  }
+  return res.json();
+}

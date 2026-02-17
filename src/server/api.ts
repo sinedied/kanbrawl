@@ -87,5 +87,24 @@ export function createApiRouter(store: BoardStore): Router {
     }
   });
 
+  // Update columns
+  router.put("/columns", (req, res) => {
+    try {
+      const { columns } = req.body as { columns?: string[] };
+      if (!columns || !Array.isArray(columns)) {
+        res.status(400).json({ error: "columns must be an array of strings" });
+        return;
+      }
+      const updated = store.updateColumns(columns);
+      res.json({ columns: updated });
+    } catch (error) {
+      res
+        .status(400)
+        .json({
+          error: error instanceof Error ? error.message : String(error),
+        });
+    }
+  });
+
   return router;
 }

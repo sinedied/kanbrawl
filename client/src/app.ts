@@ -1,7 +1,8 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { Board, Task } from "./types.js";
-import { fetchBoard, createTask, updateTask, deleteTask } from "./api.js";
+import { fetchBoard, createTask, updateTask, deleteTask, updateColumns } from "./api.js";
+import "./components/column-settings.js";
 
 type Theme = "light" | "dark";
 
@@ -150,7 +151,9 @@ export class KanbrawlApp extends LitElement {
       border: 1px solid var(--border-input);
       color: var(--text-secondary);
       cursor: pointer;
-      padding: 6px 8px;
+      padding: 0;
+      width: 30px;
+      height: 30px;
       border-radius: 6px;
       font-size: 16px;
       line-height: 1;
@@ -355,6 +358,14 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
+    this.eventSource.addEventListener("columns_updated", (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      this.board = {
+        ...this.board,
+        columns: data.columns,
+      };
+    });
+
     this.eventSource.onopen = () => {
       this.connected = true;
       this.error = null;
@@ -401,6 +412,17 @@ export class KanbrawlApp extends LitElement {
     }
   }
 
+  private async handleUpdateColumns(
+    e: CustomEvent<{ columns: string[] }>,
+  ) {
+    try {
+      await updateColumns(e.detail.columns);
+    } catch (err) {
+      this.error =
+        err instanceof Error ? err.message : "Failed to update columns";
+    }
+  }
+
   render() {
     return html`
       <header>
@@ -409,6 +431,10 @@ export class KanbrawlApp extends LitElement {
           <h1>Kanbrawl</h1>
         </div>
         <div class="header-controls">
+          <kanbrawl-column-settings
+            .columns=${this.board.columns}
+            @update-columns=${this.handleUpdateColumns}
+          ></kanbrawl-column-settings>
           <button
             class="theme-toggle"
             title="Toggle theme"

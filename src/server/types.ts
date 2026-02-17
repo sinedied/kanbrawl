@@ -22,4 +22,5 @@ export type BoardEvent =
   | { type: "task_updated"; task: Task }
   | { type: "task_moved"; task: Task; fromColumn: string }
   | { type: "task_deleted"; taskId: string }
+  | { type: "columns_updated"; columns: string[] }
   | { type: "board_sync"; board: KanbrawlData };
