@@ -19,15 +19,11 @@ AI agents manage tasks on a kanban board through [MCP](https://modelcontextproto
 
 ## Features
 
-- 🤖 **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP or stdio
-- 🖥️ **Live Web UI** — Lit 3 web components with real-time SSE updates and drag-and-drop
-- ⌨️ **CLI** — Create and update tasks, configure AI tools, and manage the server from the terminal
-- 🎨 **Dark & Light themes** — Switch themes from the UI or set a default in config
+- 🤖 **MCP Server** — Exposes kanban operations as MCP tools via HTTP or stdio
+- 🖥️ **Live Web UI** — View updates in real-time and edit/update tasks with drag-and-drop
+- ⌨️ **CLI** — Easy setup to configure your AI tools, create and update tasks from the terminal
 - 📄 **Single JSON file** — All board config and task data lives in `kanbrawl.json`
-- 🔧 **Customizable columns** — Configure column names and count to fit your workflow
-- 🏷️ **Task priority** — P0 (critical), P1 (normal), P2 (low) with visual badges
-- 👤 **Assignee tracking** — Assign tasks to agents or team members by name
-- 🔄 **Real-time sync** — Changes from agents or the UI propagate to all connected clients
+- 🔧 **Customizable** — Configure columns to fit your workflow
 - 📦 **Zero infrastructure** — No database, no external services
 
 ## Getting Started
@@ -38,29 +34,35 @@ AI agents manage tasks on a kanban board through [MCP](https://modelcontextproto
 
 ### Quick Start
 
+Run the interactive setup in your project directory:
+
 ```bash
-npm install
-npm run build
-npm start
+npx kanbrawl init
+```
+
+This will:
+1. Let you select your AI tools (VS Code Copilot, Claude Code, Cursor, Gemini CLI, Windsurf)
+2. Generate the appropriate MCP config files using stdio transport
+3. Create a `kanbrawl.json` board file with default columns
+4. Append a Kanbrawl usage section to `AGENTS.md`
+
+That's it — your AI agent can now use MCP tools to manage tasks on the board.
+
+### View the Board
+
+To launch the web UI and HTTP MCP server:
+
+```bash
+npx kanbrawl start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the board.
 
-A default `kanbrawl.json` is created automatically on first run.
+### Manual MCP Configuration
 
-### Connect an AI Agent
+If you prefer to configure your MCP client manually instead of using `kanbrawl init`:
 
-The quickest way to set up your AI tools is with the interactive `init` command:
-
-```bash
-kanbrawl init
-```
-
-This prompts you to select your AI tools (VS Code Copilot, Claude Code, Cursor, Gemini CLI, Windsurf) and generates the appropriate MCP config files using stdio transport.
-
-Alternatively, you can manually add the following to your MCP client configuration:
-
-**Stdio transport** (recommended — used by `kanbrawl init`):
+**Stdio transport** (recommended):
 
 ```json
 {
@@ -85,8 +87,6 @@ Alternatively, you can manually add the following to your MCP client configurati
   }
 }
 ```
-
-The agent can then use MCP tools to interact with the board.
 
 ## CLI
 
