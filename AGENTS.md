@@ -45,6 +45,8 @@ npm install          # Install all dependencies
 npm run dev          # Start dev mode (server + Vite HMR)
 npm run build        # Build both server and client
 npm start            # Run production server
+npm test             # Run tests once
+npm run test:watch   # Run tests in watch mode
 npm run build:server # Build server only (tsc)
 npm run build:client # Build client only (vite build)
 npm run clean        # Remove dist/
@@ -53,6 +55,16 @@ npm run clean        # Remove dist/
 - Dev server runs on port 3000 (Express API/MCP/SSE)
 - Dev client runs on port 5173 (Vite with proxy to Express)
 - Production: single Express server on port 3000 serves everything
+
+## Testing
+
+- **Framework**: Vitest with supertest for HTTP assertions
+- Test files live next to source files: `src/server/*.test.ts`
+- `api.test.ts` — REST API endpoint tests (supertest against Express app)
+- `tools.test.ts` — MCP tool tests (in-memory MCP client ↔ server via `InMemoryTransport`)
+- Each test suite creates a temp `BoardStore` backed by a disposable JSON file, cleaned up in `afterEach`
+- **New server features (API routes, MCP tools, store methods) must include corresponding tests**
+- Run `npm test` before submitting changes to ensure nothing is broken
 
 ## Coding Guidelines
 
