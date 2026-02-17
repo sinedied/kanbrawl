@@ -29,40 +29,40 @@ export class KanbrawlApp extends LitElement {
       --bg-surface: #12121c;
       --bg-surface-hover: #1a1a30;
       --bg-elevated: #16162a;
-      --bg-elevated-hover: #1a1a30;
+      --bg-elevated-hover: #1e1e36;
       --bg-input: #0e0e18;
       --bg-header: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
       --bg-column-header: linear-gradient(180deg, #16162a 0%, #12121c 100%);
-      --border-default: #1e1e30;
-      --border-subtle: #22223a;
-      --border-hover: #33334e;
-      --border-input: #2a2a3e;
-      --text-primary: #e8e6e3;
-      --text-secondary: #8888a8;
-      --text-muted: #5a5a7a;
-      --text-dimmed: #3a3a52;
-      --text-placeholder: #4a4a6a;
+      --border-default: #2a2a42;
+      --border-subtle: #2e2e48;
+      --border-hover: #44446a;
+      --border-input: #353550;
+      --text-primary: #ebebeb;
+      --text-secondary: #a0a0c0;
+      --text-muted: #8888aa;
+      --text-dimmed: #727292;
+      --text-placeholder: #6a6a8e;
       --accent: #ff6b35;
       --accent-hover: #ff8c61;
       --accent-glow: rgba(255, 107, 53, 0.4);
-      --accent-bg: rgba(255, 107, 53, 0.05);
+      --accent-bg: rgba(255, 107, 53, 0.08);
       --accent-gradient: linear-gradient(135deg, #ff6b35, #ff8c61);
-      --btn-secondary-bg: #1e1e30;
-      --btn-secondary-hover: #2a2a3e;
+      --btn-secondary-bg: #22223a;
+      --btn-secondary-hover: #30304e;
       --btn-disabled-bg: #3a3a4e;
-      --btn-disabled-text: #6b6b7b;
-      --status-text: #6b6b7b;
-      --status-inactive: #3d3d4d;
+      --btn-disabled-text: #8080a0;
+      --status-text: #8a8aaa;
+      --status-inactive: #505068;
       --error-bg: #2d1216;
       --error-border: #5c2028;
       --error-text: #ff6b6b;
       --delete-bg: #2d1216;
       --delete-text: #ff6b6b;
-      --scrollbar: #2a2a3e;
+      --scrollbar: #353550;
       --shadow: rgba(0, 0, 0, 0.4);
-      --count-bg: #1a1a2e;
-      --count-text: #4a4a6a;
-      --empty-text: #3a3a4e;
+      --count-bg: #1e1e34;
+      --count-text: #7878a0;
+      --empty-text: #686888;
     }
 
     :host([data-theme="light"]) {
@@ -295,7 +295,7 @@ export class KanbrawlApp extends LitElement {
     document.body.style.background =
       this.theme === "light" ? "#f2f0ed" : "#0a0a0f";
     document.body.style.color =
-      this.theme === "light" ? "#1a1a1a" : "#e8e6e3";
+      this.theme === "light" ? "#1a1a1a" : "#ebebeb";
   }
 
   private async loadBoard() {
