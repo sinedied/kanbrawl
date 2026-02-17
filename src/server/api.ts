@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { BoardStore } from './store.js';
 
 export function createApiRouter(store: BoardStore): Router {
+  // eslint-disable-next-line new-cap
   const router = Router();
 
   // Get full board state
