@@ -9,18 +9,18 @@ export function registerTools(
   const columns = store.getColumns();
 
   server.registerTool(
-    "get_board",
+    "get_columns",
     {
-      title: "Get Kanban Board",
-      description: `Get the full kanban board state including all columns and tasks.
+      title: "Get Columns",
+      description: `Get the list of kanban board columns with task counts.
 
 Returns:
-  JSON object with:
-  - columns (string[]): List of column names
-  - tasks (Task[]): All tasks with id, title, description, column, priority (P0-P2), assignee, createdAt, updatedAt
+  JSON array of objects, each with:
+  - name (string): Column name
+  - taskCount (number): Number of tasks in the column
 
 Example return:
-  { "columns": ["Todo", "In progress", "Done"], "tasks": [...] }`,
+  [{ "name": "Todo", "taskCount": 3 }, { "name": "In progress", "taskCount": 1 }, { "name": "Done", "taskCount": 5 }]`,
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -30,9 +30,13 @@ Example return:
       },
     },
     async () => {
-      const board = store.getBoard();
+      const allTasks = store.getTasks();
+      const columnsWithCounts = store.getColumns().map((name) => ({
+        name,
+        taskCount: allTasks.filter((t) => t.column === name).length,
+      }));
       return {
-        content: [{ type: "text", text: JSON.stringify(board, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify(columnsWithCounts, null, 2) }],
       };
     },
   );
