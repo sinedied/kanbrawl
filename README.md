@@ -8,26 +8,28 @@
 [![MCP](https://img.shields.io/badge/MCP-Streamable_HTTP-ff6b35?style=flat-square)](https://modelcontextprotocol.io)
 [![Express](https://img.shields.io/badge/Express-5-000?style=flat-square&logo=express)](https://expressjs.com)
 [![Lit](https://img.shields.io/badge/Lit-3-324fff?style=flat-square&logo=lit&logoColor=white)](https://lit.dev)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D18-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
-[Features](#features) · [Getting Started](#getting-started) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Development](#development)
+[Features](#features) · [Getting Started](#getting-started) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
 
 </div>
 
 ---
 
-AI agents manage tasks on a kanban board through MCP tools. Humans follow along in a live web UI that updates in real-time via Server-Sent Events. Both agents and humans can create, edit, move, and delete tasks.
+AI agents manage tasks on a kanban board through [MCP](https://modelcontextprotocol.io) tools. Humans follow along in a live web UI that updates in real-time via Server-Sent Events. Both agents and humans can create, edit, move, and delete tasks — all changes sync instantly.
 
 ## Features
 
-- **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP transport
-- **Live Web UI** — Lit 3 web components with real-time SSE updates, drag-and-drop task management, dark/light theme
-- **Single JSON file** — All board config and task data lives in `kanbrawl.json`
-- **Customizable columns** — Configure column names and count in `kanbrawl.json`
-- **Task priority** — P0 (critical), P1 (normal), P2 (low) with visual badges
-- **Assignee tracking** — Assign tasks to agents or humans by name
-- **Drag & drop** — Move tasks between columns by dragging
-- **Human + Agent editing** — Agents use MCP tools, humans use the web UI; changes sync instantly
-- **Zero external dependencies** — No database, no Redis, no WebSocket library
+- 🤖 **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP
+- 🖥️ **Live Web UI** — Lit 3 web components with real-time SSE updates and drag-and-drop
+- 🎨 **Dark & Light themes** — Switch themes from the UI or set a default in config
+- 📄 **Single JSON file** — All board config and task data lives in `kanbrawl.json`
+- 🔧 **Customizable columns** — Configure column names and count to fit your workflow
+- 🏷️ **Task priority** — P0 (critical), P1 (normal), P2 (low) with visual badges
+- 👤 **Assignee tracking** — Assign tasks to agents or team members by name
+- 🔄 **Real-time sync** — Changes from agents or the UI propagate to all connected clients
+- 📦 **Zero infrastructure** — No database, no Redis, no external services
 
 ## Getting Started
 
@@ -45,9 +47,11 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000) to view the board.
 
-### MCP Client Configuration
+A default `kanbrawl.json` is created automatically on first run.
 
-Add the following to your MCP client configuration:
+### Connect an AI Agent
+
+Add the following to your MCP client configuration (e.g. VS Code, Claude Desktop):
 
 ```json
 {
@@ -60,9 +64,11 @@ Add the following to your MCP client configuration:
 }
 ```
 
+The agent can then use `kanbrawl_*` tools to interact with the board.
+
 ## Configuration
 
-All configuration and data is stored in a single `kanbrawl.json` file, auto-created on first run with defaults:
+All configuration and data is stored in `kanbrawl.json`, auto-created on first run:
 
 ```json
 {
@@ -78,7 +84,8 @@ All configuration and data is stored in a single `kanbrawl.json` file, auto-crea
 | `theme` | `"light"` \| `"dark"` | System preference | UI theme override |
 | `tasks` | `Task[]` | `[]` | Task objects (managed by the app) |
 
-Edit the `columns` array to customize your board. Changes take effect on restart.
+> [!TIP]
+> Edit the `columns` array to customize your board layout. Changes take effect on restart.
 
 ## MCP Tools
 
@@ -93,6 +100,41 @@ All tools use the `kanbrawl_` prefix and are available via the `/mcp` endpoint.
 | `kanbrawl_update_task` | Update task fields (title, description, priority, assignee) | ❌ |
 | `kanbrawl_delete_task` | Delete a task | ❌ |
 
+## Architecture
+
+```mermaid
+graph LR
+  subgraph Clients
+    A["🤖 AI Agents"]
+    B["🖥️ Web Browser"]
+  end
+
+  subgraph Server ["Express 5 Server"]
+    MCP["MCP Endpoint<br/><code>/mcp</code>"]
+    API["REST API<br/><code>/api/*</code>"]
+    SSE["SSE Endpoint<br/><code>/events</code>"]
+    Store["BoardStore"]
+  end
+
+  DB[("kanbrawl.json")]
+
+  A -- "MCP tools<br/>(Streamable HTTP)" --> MCP
+  B -- "REST calls" --> API
+  B -. "real-time events" .-o SSE
+
+  MCP --> Store
+  API --> Store
+  Store -- "read/write" --> DB
+  Store -- "emit events" --> SSE
+```
+
+**How it works:**
+
+1. **AI agents** call MCP tools (e.g. `kanbrawl_create_task`) via the `/mcp` Streamable HTTP endpoint
+2. **Humans** interact through the web UI, which calls the REST API at `/api/*`
+3. All mutations flow through the **BoardStore**, which persists data to `kanbrawl.json` and emits change events
+4. The **SSE manager** broadcasts events to all connected browser clients for real-time updates
+
 ## Development
 
 ### Dev Mode
@@ -103,48 +145,36 @@ Runs the Express server with auto-reload and Vite dev server with HMR:
 npm run dev
 ```
 
-- Server: [http://localhost:3000](http://localhost:3000) (API, MCP, SSE)
-- Client: [http://localhost:5173](http://localhost:5173) (Vite dev with proxy)
+| Service | URL | Description |
+|---------|-----|-------------|
+| Server | [localhost:3000](http://localhost:3000) | API, MCP, SSE |
+| Client | [localhost:5173](http://localhost:5173) | Vite dev with proxy |
 
 ### Build
 
 ```bash
 npm run build          # Build both server and client
-npm run build:server   # Build server only
-npm run build:client   # Build client only
+npm run build:server   # Build server only (tsc)
+npm run build:client   # Build client only (vite)
+npm run clean          # Remove dist/
 ```
 
 ### Project Structure
 
 ```
-├── src/
-│   ├── server/         # Express + MCP server
-│   │   ├── index.ts    # Main entry point
-│   │   ├── store.ts    # BoardStore (JSON file persistence)
-│   │   ├── tools.ts    # MCP tool registrations
-│   │   ├── api.ts      # REST API routes for web UI
-│   │   ├── sse.ts      # Server-Sent Events manager
-│   │   └── types.ts    # Shared TypeScript types
-│   └── client/         # Lit 3 web client
-│       ├── src/
-│       │   ├── app.ts      # Root app component + SSE handling
-│       │   ├── api.ts      # REST API client
-│       │   └── components/ # Board, Column, Task components
-│       ├── index.html      # Vite entry point
-│       └── vite.config.ts  # Vite configuration
-├── kanbrawl.json       # Board config + data (auto-created)
-└── package.json
-```
-
-### Architecture
-
-```
-┌──────────────┐     MCP/HTTP      ┌─────────────────────┐
-│  AI Agents   │ ──────────────▸   │                     │
-└──────────────┘                   │   Express 5 Server  │
-                                   │                     │
-┌──────────────┐    REST + SSE     │  ┌───────────────┐  │     ┌───────────────┐
-│  Web Browser │ ◂─────────────▸   │  │  BoardStore   │──────▸ │ kanbrawl.json │
-└──────────────┘                   │  └───────────────┘  │     └───────────────┘
-                                   └─────────────────────┘
+src/
+├── server/              # Express + MCP server (TypeScript → dist/server/)
+│   ├── index.ts         # App setup, MCP + SSE wiring
+│   ├── store.ts         # BoardStore — JSON persistence + event emitter
+│   ├── tools.ts         # MCP tool registrations
+│   ├── api.ts           # REST API routes
+│   ├── sse.ts           # SSE client manager
+│   └── types.ts         # Shared TypeScript interfaces
+└── client/              # Lit 3 web client (Vite → dist/client/)
+    ├── src/
+    │   ├── app.ts       # Root <kanbrawl-app> component + SSE handling
+    │   ├── api.ts       # fetch-based REST API client
+    │   └── components/  # Board, Column, Task web components
+    ├── index.html       # Vite entry point
+    └── vite.config.ts   # Vite config with dev proxy
 ```
