@@ -1,0 +1,300 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import type { BoardStore } from "./store.js";
+
+export function registerTools(
+  server: McpServer,
+  store: BoardStore,
+): void {
+  const columns = store.getColumns();
+
+  server.registerTool(
+    "kanbrawl_get_board",
+    {
+      title: "Get Kanban Board",
+      description: `Get the full kanban board state including all columns and tasks.
+
+Returns:
+  JSON object with:
+  - columns (string[]): List of column names
+  - tasks (Task[]): All tasks with id, title, description, column, createdAt, updatedAt
+
+Example return:
+  { "columns": ["Todo", "In progress", "Done"], "tasks": [...] }`,
+      inputSchema: {},
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async () => {
+      const board = store.getBoard();
+      return {
+        content: [{ type: "text", text: JSON.stringify(board, null, 2) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "kanbrawl_list_tasks",
+    {
+      title: "List Tasks",
+      description: `List tasks on the kanban board, optionally filtered by column.
+
+Args:
+  - column (string, optional): Filter tasks to a specific column. Available columns: ${columns.join(", ")}
+
+Returns:
+  JSON array of tasks, each with: id, title, description, column, createdAt, updatedAt
+
+Examples:
+  - List all tasks: {}
+  - List tasks in "Todo": { "column": "Todo" }`,
+      inputSchema: {
+        column: z
+          .string()
+          .optional()
+          .describe(
+            `Column name to filter by. Available: ${columns.join(", ")}`,
+          ),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ column }) => {
+      if (column && !store.getColumns().includes(column)) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: Column "${column}" does not exist. Available columns: ${store.getColumns().join(", ")}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+      const tasks = store.getTasks(column);
+      return {
+        content: [{ type: "text", text: JSON.stringify(tasks, null, 2) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "kanbrawl_create_task",
+    {
+      title: "Create Task",
+      description: `Create a new task on the kanban board.
+
+Args:
+  - title (string, required): Task title (1-200 chars)
+  - description (string, optional): Task description (max 2000 chars)
+  - column (string, optional): Column to place the task in. Defaults to "${columns[0]}". Available: ${columns.join(", ")}
+
+Returns:
+  The created task as JSON with: id, title, description, column, createdAt, updatedAt`,
+      inputSchema: {
+        title: z
+          .string()
+          .min(1, "Title is required")
+          .max(200, "Title must not exceed 200 characters")
+          .describe("Task title"),
+        description: z
+          .string()
+          .max(2000, "Description must not exceed 2000 characters")
+          .optional()
+          .describe("Task description"),
+        column: z
+          .string()
+          .optional()
+          .describe(
+            `Column to place task in. Defaults to "${columns[0]}". Available: ${columns.join(", ")}`,
+          ),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ title, description, column }) => {
+      try {
+        const task = store.createTask(title, description, column);
+        return {
+          content: [{ type: "text", text: JSON.stringify(task, null, 2) }],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    "kanbrawl_move_task",
+    {
+      title: "Move Task",
+      description: `Move an existing task to a different column.
+
+Args:
+  - id (string, required): The task ID (UUID)
+  - column (string, required): Target column name. Available: ${columns.join(", ")}
+
+Returns:
+  The updated task as JSON
+
+Errors:
+  - If the task ID is not found
+  - If the column name is invalid`,
+      inputSchema: {
+        id: z.string().describe("Task ID (UUID)"),
+        column: z
+          .string()
+          .describe(
+            `Target column. Available: ${columns.join(", ")}`,
+          ),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ id, column }) => {
+      try {
+        const task = store.moveTask(id, column);
+        return {
+          content: [{ type: "text", text: JSON.stringify(task, null, 2) }],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    "kanbrawl_update_task",
+    {
+      title: "Update Task",
+      description: `Update a task's title and/or description.
+
+Args:
+  - id (string, required): The task ID (UUID)
+  - title (string, optional): New title (1-200 chars)
+  - description (string, optional): New description (max 2000 chars)
+
+Returns:
+  The updated task as JSON
+
+Errors:
+  - If the task ID is not found`,
+      inputSchema: {
+        id: z.string().describe("Task ID (UUID)"),
+        title: z
+          .string()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe("New task title"),
+        description: z
+          .string()
+          .max(2000)
+          .optional()
+          .describe("New task description"),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ id, title, description }) => {
+      try {
+        const task = store.updateTask(id, { title, description });
+        return {
+          content: [{ type: "text", text: JSON.stringify(task, null, 2) }],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    "kanbrawl_delete_task",
+    {
+      title: "Delete Task",
+      description: `Permanently delete a task from the kanban board.
+
+Args:
+  - id (string, required): The task ID (UUID) to delete
+
+Returns:
+  Confirmation message
+
+Errors:
+  - If the task ID is not found`,
+      inputSchema: {
+        id: z.string().describe("Task ID (UUID) to delete"),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ id }) => {
+      try {
+        store.deleteTask(id);
+        return {
+          content: [
+            { type: "text", text: `Task "${id}" has been deleted.` },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  );
+}

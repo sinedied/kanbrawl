@@ -1,0 +1,36 @@
+{
+  "name": "kanbrawl",
+  "version": "1.0.0",
+  "description": "A minimal live kanban board for AI agents, powered by MCP",
+  "type": "module",
+  "main": "dist/server/index.js",
+  "scripts": {
+    "build:server": "tsc",
+    "build:client": "vite build client",
+    "build": "npm run build:server && npm run build:client",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:client": "vite dev client",
+    "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",
+    "start": "node dist/server/index.js",
+    "clean": "rm -rf dist"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "express": "^5.1.0",
+    "lit": "^3.2.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.4",
+    "@types/uuid": "^10.0.0",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}
