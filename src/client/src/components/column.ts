@@ -49,7 +49,7 @@ export class KanbrawlColumn extends LitElement {
       flex-direction: column;
       align-items: center;
       height: 100%;
-      padding: 12px 0;
+      padding: 6px 0;
       gap: 10px;
       box-sizing: border-box;
     }
@@ -122,7 +122,7 @@ export class KanbrawlColumn extends LitElement {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 16px 18px;
+      padding: 6px 18px;
       background: var(--bg-column-header);
       border-bottom: 1px solid var(--border-default);
       transition:
@@ -338,7 +338,7 @@ export class KanbrawlColumn extends LitElement {
       .folded-view {
         flex-direction: row;
         height: auto;
-        padding: 12px 14px;
+        padding: 6px 14px;
         gap: 6px;
         align-items: center;
       }
@@ -363,7 +363,7 @@ export class KanbrawlColumn extends LitElement {
       }
 
       .column-header {
-        padding: 12px 14px;
+        padding: 6px 14px;
       }
 
       .tasks-list {
