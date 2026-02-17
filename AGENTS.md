@@ -60,6 +60,7 @@ npm run clean        # Remove dist/
 
 - **Framework**: Vitest with supertest for HTTP assertions
 - Test files live next to source files: `src/server/*.test.ts`
+- `store.test.ts` — BoardStore unit tests (CRUD, persistence, events, column management)
 - `api.test.ts` — REST API endpoint tests (supertest against Express app)
 - `tools.test.ts` — MCP tool tests (in-memory MCP client ↔ server via `InMemoryTransport`)
 - Each test suite creates a temp `BoardStore` backed by a disposable JSON file, cleaned up in `afterEach`
