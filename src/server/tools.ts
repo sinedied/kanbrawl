@@ -2,6 +2,17 @@ import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { BoardStore } from './store.js';
 
+const taskOutputSchema = {
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  column: z.string(),
+  priority: z.enum(['P0', 'P1', 'P2']),
+  assignee: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+};
+
 export function registerTools(server: McpServer, store: BoardStore): void {
   const columns = store.getColumns();
 
@@ -9,16 +20,17 @@ export function registerTools(server: McpServer, store: BoardStore): void {
     'get_columns',
     {
       title: 'Get Columns',
-      description: `Get the list of kanban board columns with task counts.
-
-Returns:
-  JSON array of objects, each with:
-  - name (string): Column name
-  - taskCount (number): Number of tasks in the column
-
-Example return:
-  [{ "name": "Todo", "taskCount": 3 }, { "name": "In progress", "taskCount": 1 }, { "name": "Done", "taskCount": 5 }]`,
+      description:
+        'Get the list of kanban board columns with their task counts.',
       inputSchema: {},
+      outputSchema: {
+        columns: z.array(
+          z.object({
+            name: z.string().describe('Column name'),
+            taskCount: z.number().describe('Number of tasks in the column'),
+          }),
+        ),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -32,10 +44,15 @@ Example return:
         name,
         taskCount: allTasks.filter((t) => t.column === name).length,
       }));
+      const structuredContent = { columns: columnsWithCounts };
       return {
         content: [
-          { type: 'text', text: JSON.stringify(columnsWithCounts, null, 2) },
+          {
+            type: 'text',
+            text: JSON.stringify(structuredContent, null, 2),
+          },
         ],
+        structuredContent,
       };
     },
   );
@@ -44,20 +61,8 @@ Example return:
     'list_tasks',
     {
       title: 'List Tasks',
-      description: `List tasks on the kanban board, optionally filtered by column and priority.
-
-Args:
-  - column (string, optional): Filter tasks to a specific column. Defaults to "${columns[0]}". Available columns: ${columns.join(', ')}
-  - priority (string, optional): Filter tasks by priority level. One of: P0, P1, P2
-
-Returns:
-  JSON array of tasks, each with: id, title, description, column, priority (P0-P2), assignee, createdAt, updatedAt
-
-Examples:
-  - List todo tasks (default): {}
-  - List tasks in "In progress": { "column": "In progress" }
-  - List high-priority todo tasks: { "priority": "P0" }
-  - List all P1 tasks in "Done": { "column": "Done", "priority": "P1" }`,
+      description:
+        'List tasks on the kanban board, optionally filtered by column and priority.',
       inputSchema: {
         column: z
           .string()
@@ -69,6 +74,9 @@ Examples:
           .enum(['P0', 'P1', 'P2'])
           .optional()
           .describe('Filter tasks by priority level'),
+      },
+      outputSchema: {
+        tasks: z.array(z.object(taskOutputSchema)),
       },
       annotations: {
         readOnlyHint: true,
@@ -96,8 +104,15 @@ Examples:
         tasks = tasks.filter((t) => t.priority === priority);
       }
 
+      const structuredContent = { tasks };
       return {
-        content: [{ type: 'text', text: JSON.stringify(tasks, null, 2) }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(structuredContent, null, 2),
+          },
+        ],
+        structuredContent,
       };
     },
   );
@@ -106,17 +121,7 @@ Examples:
     'create_task',
     {
       title: 'Create Task',
-      description: `Create a new task on the kanban board.
-
-Args:
-  - title (string, required): Task title (1-200 chars)
-  - description (string, optional): Task description (max 2000 chars)
-  - column (string, optional): Column to place the task in. Defaults to "${columns[0]}". Available: ${columns.join(', ')}
-  - priority (string, optional): Task priority. One of: P0, P1, P2. Defaults to P1
-  - assignee (string, optional): Name of the person or agent assigned to this task
-
-Returns:
-  The created task as JSON with: id, title, description, column, priority, assignee, createdAt, updatedAt`,
+      description: 'Create a new task on the kanban board.',
       inputSchema: {
         title: z
           .string()
@@ -144,6 +149,7 @@ Returns:
           .optional()
           .describe('Name of the person or agent assigned to this task'),
       },
+      outputSchema: taskOutputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -162,6 +168,7 @@ Returns:
         );
         return {
           content: [{ type: 'text', text: JSON.stringify(task, null, 2) }],
+          structuredContent: task,
         };
       } catch (error) {
         return {
@@ -181,24 +188,14 @@ Returns:
     'move_task',
     {
       title: 'Move Task',
-      description: `Move an existing task to a different column.
-
-Args:
-  - id (string, required): The task ID (UUID)
-  - column (string, required): Target column name. Available: ${columns.join(', ')}
-
-Returns:
-  The updated task as JSON
-
-Errors:
-  - If the task ID is not found
-  - If the column name is invalid`,
+      description: 'Move an existing task to a different column.',
       inputSchema: {
         id: z.string().describe('Task ID (UUID)'),
         column: z
           .string()
           .describe(`Target column. Available: ${columns.join(', ')}`),
       },
+      outputSchema: taskOutputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -211,6 +208,7 @@ Errors:
         const task = store.moveTask(id, column);
         return {
           content: [{ type: 'text', text: JSON.stringify(task, null, 2) }],
+          structuredContent: task,
         };
       } catch (error) {
         return {
@@ -230,20 +228,8 @@ Errors:
     'update_task',
     {
       title: 'Update Task',
-      description: `Update a task's title, description, priority, and/or assignee.
-
-Args:
-  - id (string, required): The task ID (UUID)
-  - title (string, optional): New title (1-200 chars)
-  - description (string, optional): New description (max 2000 chars)
-  - priority (string, optional): New priority. One of: P0, P1, P2
-  - assignee (string, optional): New assignee name (empty string to unassign)
-
-Returns:
-  The updated task as JSON
-
-Errors:
-  - If the task ID is not found`,
+      description:
+        "Update a task's title, description, priority, and/or assignee.",
       inputSchema: {
         id: z.string().describe('Task ID (UUID)'),
         title: z.string().min(1).max(200).optional().describe('New task title'),
@@ -262,6 +248,7 @@ Errors:
           .optional()
           .describe('New assignee name (empty string to unassign)'),
       },
+      outputSchema: taskOutputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -279,6 +266,7 @@ Errors:
         });
         return {
           content: [{ type: 'text', text: JSON.stringify(task, null, 2) }],
+          structuredContent: task,
         };
       } catch (error) {
         return {
@@ -298,18 +286,12 @@ Errors:
     'delete_task',
     {
       title: 'Delete Task',
-      description: `Permanently delete a task from the kanban board.
-
-Args:
-  - id (string, required): The task ID (UUID) to delete
-
-Returns:
-  Confirmation message
-
-Errors:
-  - If the task ID is not found`,
+      description: 'Permanently delete a task from the kanban board. Should only be used in case of errorneous or test tasks, as this action cannot be undone!',
       inputSchema: {
         id: z.string().describe('Task ID (UUID) to delete'),
+      },
+      outputSchema: {
+        message: z.string().describe('Confirmation message'),
       },
       annotations: {
         readOnlyHint: false,
@@ -321,8 +303,17 @@ Errors:
     async ({ id }) => {
       try {
         store.deleteTask(id);
+        const structuredContent = {
+          message: `Task "${id}" has been deleted.`,
+        };
         return {
-          content: [{ type: 'text', text: `Task "${id}" has been deleted.` }],
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(structuredContent, null, 2),
+            },
+          ],
+          structuredContent,
         };
       } catch (error) {
         return {

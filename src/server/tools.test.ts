@@ -41,6 +41,7 @@ async function callTool(
     ...result,
     text,
     json: () => JSON.parse(text),
+    structured: result.structuredContent as Record<string, unknown> | undefined,
   };
 }
 
@@ -64,14 +65,15 @@ describe('MCP Tools', () => {
   describe('get_columns', () => {
     it('returns default columns with zero task counts', async () => {
       const result = await callTool(client, 'get_columns');
-      const columns = result.json();
+      const data = result.json();
 
-      expect(columns).toEqual([
+      expect(data.columns).toEqual([
         { name: 'Todo', taskCount: 0 },
         { name: 'In progress', taskCount: 0 },
         { name: 'Blocked', taskCount: 0 },
         { name: 'Done', taskCount: 0 },
       ]);
+      expect(result.structured).toEqual(data);
     });
 
     it('reflects task counts after creating tasks', async () => {
@@ -83,10 +85,10 @@ describe('MCP Tools', () => {
       });
 
       const result = await callTool(client, 'get_columns');
-      const columns = result.json();
+      const data = result.json();
 
-      const todoCol = columns.find((c: { name: string }) => c.name === 'Todo');
-      const doneCol = columns.find((c: { name: string }) => c.name === 'Done');
+      const todoCol = data.columns.find((c: { name: string }) => c.name === 'Todo');
+      const doneCol = data.columns.find((c: { name: string }) => c.name === 'Done');
       expect(todoCol.taskCount).toBe(2);
       expect(doneCol.taskCount).toBe(1);
     });
@@ -96,7 +98,8 @@ describe('MCP Tools', () => {
   describe('list_tasks', () => {
     it('returns empty array when no tasks', async () => {
       const result = await callTool(client, 'list_tasks');
-      expect(result.json()).toEqual([]);
+      expect(result.json().tasks).toEqual([]);
+      expect(result.structured).toEqual({ tasks: [] });
     });
 
     it('lists tasks in default column (Todo)', async () => {
@@ -104,7 +107,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'B', column: 'Done' });
 
       const result = await callTool(client, 'list_tasks');
-      const tasks = result.json();
+      const tasks = result.json().tasks;
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('A');
     });
@@ -114,7 +117,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'B', column: 'Done' });
 
       const result = await callTool(client, 'list_tasks', { column: 'Done' });
-      const tasks = result.json();
+      const tasks = result.json().tasks;
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('B');
     });
@@ -124,7 +127,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'High', priority: 'P0' });
 
       const result = await callTool(client, 'list_tasks', { priority: 'P0' });
-      const tasks = result.json();
+      const tasks = result.json().tasks;
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('High');
     });
@@ -153,6 +156,7 @@ describe('MCP Tools', () => {
       expect(task.assignee).toBe('');
       expect(task.id).toBeDefined();
       expect(task.createdAt).toBeDefined();
+      expect(result.structured).toEqual(task);
     });
 
     it('creates a task with all fields', async () => {
@@ -265,11 +269,12 @@ describe('MCP Tools', () => {
 
       const result = await callTool(client, 'delete_task', { id: taskId });
       expect(result.isError).toBeUndefined();
-      expect(result.text).toMatch(/deleted/i);
+      expect(result.structured).toHaveProperty('message');
+      expect((result.structured as { message: string }).message).toMatch(/deleted/i);
 
       // Verify it's gone
       const list = await callTool(client, 'list_tasks');
-      expect(list.json()).toHaveLength(0);
+      expect(list.json().tasks).toHaveLength(0);
     });
 
     it('returns error for non-existent task', async () => {
