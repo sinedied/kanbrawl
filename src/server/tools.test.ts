@@ -87,8 +87,12 @@ describe('MCP Tools', () => {
       const result = await callTool(client, 'get_columns');
       const data = result.json();
 
-      const todoCol = data.columns.find((c: { name: string }) => c.name === 'Todo');
-      const doneCol = data.columns.find((c: { name: string }) => c.name === 'Done');
+      const todoCol = data.columns.find(
+        (c: { name: string }) => c.name === 'Todo',
+      );
+      const doneCol = data.columns.find(
+        (c: { name: string }) => c.name === 'Done',
+      );
       expect(todoCol.taskCount).toBe(2);
       expect(doneCol.taskCount).toBe(1);
     });
@@ -107,7 +111,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'B', column: 'Done' });
 
       const result = await callTool(client, 'list_tasks');
-      const tasks = result.json().tasks;
+      const { tasks } = result.json();
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('A');
     });
@@ -117,7 +121,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'B', column: 'Done' });
 
       const result = await callTool(client, 'list_tasks', { column: 'Done' });
-      const tasks = result.json().tasks;
+      const { tasks } = result.json();
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('B');
     });
@@ -127,7 +131,7 @@ describe('MCP Tools', () => {
       await callTool(client, 'create_task', { title: 'High', priority: 'P0' });
 
       const result = await callTool(client, 'list_tasks', { priority: 'P0' });
-      const tasks = result.json().tasks;
+      const { tasks } = result.json();
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe('High');
     });
@@ -270,7 +274,9 @@ describe('MCP Tools', () => {
       const result = await callTool(client, 'delete_task', { id: taskId });
       expect(result.isError).toBeUndefined();
       expect(result.structured).toHaveProperty('message');
-      expect((result.structured as { message: string }).message).toMatch(/deleted/i);
+      expect((result.structured as { message: string }).message).toMatch(
+        /deleted/i,
+      );
 
       // Verify it's gone
       const list = await callTool(client, 'list_tasks');

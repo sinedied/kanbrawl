@@ -286,7 +286,8 @@ export function registerTools(server: McpServer, store: BoardStore): void {
     'delete_task',
     {
       title: 'Delete Task',
-      description: 'Permanently delete a task from the kanban board. Should only be used in case of errorneous or test tasks, as this action cannot be undone!',
+      description:
+        'Permanently delete a task from the kanban board. Should only be used in case of errorneous or test tasks, as this action cannot be undone!',
       inputSchema: {
         id: z.string().describe('Task ID (UUID) to delete'),
       },
