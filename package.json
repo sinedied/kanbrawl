@@ -7,7 +7,7 @@
   "author": "sinedied",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sinedied/kanbrawl.git"
+    "url": "git+https://github.com/sinedied/kanbrawl.git"
   },
   "homepage": "https://github.com/sinedied/kanbrawl",
   "bugs": {
