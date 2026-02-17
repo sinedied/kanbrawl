@@ -64,7 +64,7 @@ Add the following to your MCP client configuration (e.g. VS Code, Claude Desktop
 }
 ```
 
-The agent can then use `kanbrawl_*` tools to interact with the board.
+The agent can then use MCP tools to interact with the board.
 
 ## Configuration
 
@@ -89,16 +89,16 @@ All configuration and data is stored in `kanbrawl.json`, auto-created on first r
 
 ## MCP Tools
 
-All tools use the `kanbrawl_` prefix and are available via the `/mcp` endpoint.
+All tools are available via the `/mcp` endpoint.
 
 | Tool | Description | Read-only |
 |------|-------------|-----------|
-| `kanbrawl_get_board` | Get full board state (columns + tasks) | ✅ |
-| `kanbrawl_list_tasks` | List tasks, optionally filtered by column | ✅ |
-| `kanbrawl_create_task` | Create a new task (with priority, assignee) | ❌ |
-| `kanbrawl_move_task` | Move a task to a different column | ❌ |
-| `kanbrawl_update_task` | Update task fields (title, description, priority, assignee) | ❌ |
-| `kanbrawl_delete_task` | Delete a task | ❌ |
+| `get_board` | Get full board state (columns + tasks) | ✅ |
+| `list_tasks` | List tasks, optionally filtered by column | ✅ |
+| `create_task` | Create a new task (with priority, assignee) | ❌ |
+| `move_task` | Move a task to a different column | ❌ |
+| `update_task` | Update task fields (title, description, priority, assignee) | ❌ |
+| `delete_task` | Delete a task | ❌ |
 
 ## Architecture
 
@@ -130,7 +130,7 @@ graph LR
 
 **How it works:**
 
-1. **AI agents** call MCP tools (e.g. `kanbrawl_create_task`) via the `/mcp` Streamable HTTP endpoint
+1. **AI agents** call MCP tools (e.g. `create_task`) via the `/mcp` Streamable HTTP endpoint
 2. **Humans** interact through the web UI, which calls the REST API at `/api/*`
 3. All mutations flow through the **BoardStore**, which persists data to `kanbrawl.json` and emits change events
 4. The **SSE manager** broadcasts events to all connected browser clients for real-time updates

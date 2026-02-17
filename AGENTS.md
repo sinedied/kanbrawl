@@ -26,7 +26,7 @@ src/
   server/            → Express + MCP server (TypeScript, compiled to dist/server/)
     index.ts         → Main entry, Express app setup, MCP + SSE wiring
     store.ts         → BoardStore class (read/write kanbrawl.json, emit events)
-    tools.ts         → MCP tool registrations (kanbrawl_* prefix)
+    tools.ts         → MCP tool registrations
     api.ts           → REST API router (/api/board, /api/tasks)
     sse.ts           → SSE client manager (broadcast board events)
     types.ts         → Shared TypeScript interfaces
@@ -60,7 +60,7 @@ npm run clean        # Remove dist/
 - **ES modules** throughout (`"type": "module"` in package.json)
 - Server uses **Node16 module resolution**; client uses **bundler resolution**
 - Lit components use **experimental decorators** (`@customElement`, `@property`, `@state`)
-- MCP tools follow **snake_case** naming with `kanbrawl_` prefix
+- MCP tools follow **snake_case** naming
 - All MCP tools include `title`, `description`, `inputSchema` (Zod), and `annotations`
 - REST API follows standard HTTP conventions (POST=create, PATCH=update, DELETE=delete)
 - Board mutations always go through `BoardStore` methods which persist to disk and emit events

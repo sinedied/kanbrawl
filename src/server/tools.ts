@@ -9,7 +9,7 @@ export function registerTools(
   const columns = store.getColumns();
 
   server.registerTool(
-    "kanbrawl_get_board",
+    "get_board",
     {
       title: "Get Kanban Board",
       description: `Get the full kanban board state including all columns and tasks.
@@ -38,7 +38,7 @@ Example return:
   );
 
   server.registerTool(
-    "kanbrawl_list_tasks",
+    "list_tasks",
     {
       title: "List Tasks",
       description: `List tasks on the kanban board, optionally filtered by column.
@@ -87,7 +87,7 @@ Examples:
   );
 
   server.registerTool(
-    "kanbrawl_create_task",
+    "create_task",
     {
       title: "Create Task",
       description: `Create a new task on the kanban board.
@@ -156,7 +156,7 @@ Returns:
   );
 
   server.registerTool(
-    "kanbrawl_move_task",
+    "move_task",
     {
       title: "Move Task",
       description: `Move an existing task to a different column.
@@ -207,7 +207,7 @@ Errors:
   );
 
   server.registerTool(
-    "kanbrawl_update_task",
+    "update_task",
     {
       title: "Update Task",
       description: `Update a task's title, description, priority, and/or assignee.
@@ -275,7 +275,7 @@ Errors:
   );
 
   server.registerTool(
-    "kanbrawl_delete_task",
+    "delete_task",
     {
       title: "Delete Task",
       description: `Permanently delete a task from the kanban board.
