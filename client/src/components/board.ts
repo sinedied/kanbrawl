@@ -96,10 +96,9 @@ export class KanbrawlBoard extends LitElement {
       }
 
       kanbrawl-column.folded {
-        flex: 0 0 auto;
+        flex: 1 0 0%;
         min-width: 0;
         max-width: none;
-        width: auto;
       }
     }
   `;

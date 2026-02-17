@@ -316,7 +316,7 @@ export class KanbrawlColumn extends LitElement {
     @media (max-width: 600px) {
       /* Folded state (mobile) */
       :host(.folded) {
-        width: auto;
+        width: 100%;
         flex: 0 0 auto;
         min-width: 0 !important;
       }
@@ -324,7 +324,8 @@ export class KanbrawlColumn extends LitElement {
       .folded-view {
         flex-direction: row;
         height: auto;
-        padding: 10px 14px;
+        padding: 12px 14px;
+        gap: 6px;
         align-items: center;
       }
 
@@ -334,6 +335,9 @@ export class KanbrawlColumn extends LitElement {
 
       .folded-view .folded-count {
         order: 1;
+        margin-left: auto;
+        padding: 3px 8px;
+        min-width: 24px;
       }
 
       .folded-title {
@@ -341,6 +345,7 @@ export class KanbrawlColumn extends LitElement {
         text-orientation: initial;
         transform: none;
         flex: 0 0 auto;
+        font-size: 13px;
       }
 
       .column-header {
