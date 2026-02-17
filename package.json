@@ -1,9 +1,33 @@
 {
   "name": "kanbrawl",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "A minimal live kanban board for AI agents, powered by MCP",
   "type": "module",
+  "license": "MIT",
+  "author": "sinedied",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sinedied/kanbrawl.git"
+  },
+  "homepage": "https://github.com/sinedied/kanbrawl",
+  "bugs": {
+    "url": "https://github.com/sinedied/kanbrawl/issues"
+  },
+  "keywords": [
+    "kanban",
+    "board",
+    "mcp",
+    "ai",
+    "agents",
+    "model-context-protocol"
+  ],
   "main": "dist/server/index.js",
+  "bin": {
+    "kanbrawl": "dist/server/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build:server": "tsc",
     "build:client": "vite build src/client",
@@ -12,10 +36,16 @@
     "dev:client": "vite dev src/client",
     "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",
     "start": "node dist/server/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepare": "npm run build",
+    "release:check": "semantic-release --dry-run"
   },
   "engines": {
     "node": ">=18"
+  },
+  "release": {
+    "extends": "semantic-release-npm-github",
+    "branch": "main"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -29,6 +59,8 @@
     "@types/node": "^22.13.4",
     "@types/uuid": "^10.0.0",
     "concurrently": "^9.1.2",
+    "semantic-release": "^24.2.9",
+    "semantic-release-npm-github": "^6.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
