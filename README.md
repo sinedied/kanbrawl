@@ -9,7 +9,7 @@
 [![Node](https://img.shields.io/badge/Node.js-%3E%3D22-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
-[Features](#features) · [Getting Started](#getting-started) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
+[Features](#features) · [Getting Started](#getting-started) · [CLI](#cli) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
 
 </div>
 
@@ -19,8 +19,9 @@ AI agents manage tasks on a kanban board through [MCP](https://modelcontextproto
 
 ## Features
 
-- 🤖 **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP
+- 🤖 **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP or stdio
 - 🖥️ **Live Web UI** — Lit 3 web components with real-time SSE updates and drag-and-drop
+- ⌨️ **CLI** — Create and update tasks, configure AI tools, and manage the server from the terminal
 - 🎨 **Dark & Light themes** — Switch themes from the UI or set a default in config
 - 📄 **Single JSON file** — All board config and task data lives in `kanbrawl.json`
 - 🔧 **Customizable columns** — Configure column names and count to fit your workflow
@@ -49,13 +50,36 @@ A default `kanbrawl.json` is created automatically on first run.
 
 ### Connect an AI Agent
 
-Add the following to your MCP client configuration (e.g. VS Code, Claude Desktop):
+The quickest way to set up your AI tools is with the interactive `init` command:
+
+```bash
+kanbrawl init
+```
+
+This prompts you to select your AI tools (VS Code Copilot, Claude Code, Cursor, Gemini CLI, Windsurf) and generates the appropriate MCP config files using stdio transport.
+
+Alternatively, you can manually add the following to your MCP client configuration:
+
+**Stdio transport** (recommended — used by `kanbrawl init`):
 
 ```json
 {
   "mcpServers": {
     "kanbrawl": {
-      "type": "streamable-http",
+      "command": "npx",
+      "args": ["-y", "kanbrawl", "start", "--stdio"]
+    }
+  }
+}
+```
+
+**HTTP transport** (requires a running server):
+
+```json
+{
+  "mcpServers": {
+    "kanbrawl": {
+      "type": "http",
       "url": "http://localhost:3000/mcp"
     }
   }
@@ -63,6 +87,46 @@ Add the following to your MCP client configuration (e.g. VS Code, Claude Desktop
 ```
 
 The agent can then use MCP tools to interact with the board.
+
+## CLI
+
+The `kanbrawl` CLI (also aliased as `kb`) provides the following commands:
+
+```bash
+kanbrawl                    # Start HTTP server (default)
+kanbrawl start              # Start HTTP server
+kanbrawl start --stdio      # Start MCP server over stdio transport
+kanbrawl task "title"       # Create a task
+kanbrawl task "title" -u    # Update existing task by title match
+kanbrawl init               # Interactive setup for AI tools
+kanbrawl --version          # Show version
+kanbrawl --help             # Show help
+```
+
+### `task` command
+
+Create or update tasks directly from the terminal:
+
+```bash
+kanbrawl task "Fix login bug" -p 0 -a alice -c "In progress"
+kanbrawl task "Fix login bug" -u -c "Done"
+```
+
+| Option | Description |
+|--------|-------------|
+| `-d, --description <text>` | Task description |
+| `-c, --column <name>` | Target column |
+| `-p, --priority <level>` | Priority (0, 1, or 2; default 1) |
+| `-a, --assignee <name>` | Task assignee |
+| `-u, --update` | Update existing task by title match |
+
+### `init` command
+
+Interactive setup that:
+1. Prompts to select AI tools (VS Code Copilot, Claude Code, Cursor, Gemini CLI, Windsurf)
+2. Generates MCP config files with stdio transport for each selected tool
+3. Creates `kanbrawl.json` with default columns if missing
+4. Appends a Kanbrawl usage section to `AGENTS.md`
 
 ## Configuration
 
