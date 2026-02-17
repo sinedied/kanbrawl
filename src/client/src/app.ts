@@ -21,6 +21,16 @@ export class KanbrawlApp extends LitElement {
   @state() private selectedTask: Task | undefined = null;
 
   private eventSource: EventSource | undefined = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | undefined = null;
+  private reconnectDelay = 1000;
+
+  private static get MAX_RECONNECT_DELAY() {
+    return 30_000;
+  }
+
+  private static get BASE_RECONNECT_DELAY() {
+    return 1000;
+  }
 
   static styles = css`
     :host {
@@ -201,6 +211,22 @@ export class KanbrawlApp extends LitElement {
     .status-dot.connected {
       background: #00e676;
       box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
+    }
+
+    .status-dot.reconnecting {
+      background: #ffa726;
+      box-shadow: 0 0 8px rgba(255, 167, 38, 0.5);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
     }
 
     .error-bar {
@@ -442,7 +468,32 @@ export class KanbrawlApp extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.closeSSE();
+  }
+
+  private closeSSE() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
     this.eventSource?.close();
+    this.eventSource = null;
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimer) return;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connectSSE();
+    }, this.reconnectDelay);
+
+    // Exponential backoff capped at MAX_RECONNECT_DELAY
+    this.reconnectDelay = Math.min(
+      this.reconnectDelay * 2,
+      KanbrawlApp.MAX_RECONNECT_DELAY,
+    );
   }
 
   private initTheme() {
@@ -488,6 +539,7 @@ export class KanbrawlApp extends LitElement {
   }
 
   private connectSSE() {
+    this.closeSSE();
     this.eventSource = new EventSource('/events');
 
     this.eventSource.addEventListener('board_sync', (e: MessageEvent) => {
@@ -495,6 +547,7 @@ export class KanbrawlApp extends LitElement {
       this.board = { ...data.board };
       this.connected = true;
       this.error = null;
+      this.reconnectDelay = KanbrawlApp.BASE_RECONNECT_DELAY;
     });
 
     this.eventSource.addEventListener('task_created', (e: MessageEvent) => {
@@ -548,10 +601,17 @@ export class KanbrawlApp extends LitElement {
     this.eventSource.addEventListener('open', () => {
       this.connected = true;
       this.error = null;
+      this.reconnectDelay = KanbrawlApp.BASE_RECONNECT_DELAY;
+      // Re-fetch board to catch any events missed during disconnect
+      void this.loadBoard();
     });
 
     this.eventSource.addEventListener('error', () => {
       this.connected = false;
+      // Close and manually reconnect to ensure clean state
+      this.eventSource?.close();
+      this.eventSource = null;
+      this.scheduleReconnect();
     });
   }
 
@@ -704,8 +764,12 @@ export class KanbrawlApp extends LitElement {
             ${this.theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <div class="status">
-            <div class="status-dot ${this.connected ? 'connected' : ''}"></div>
-            ${this.connected ? 'LIVE' : 'CONNECTING'}
+            <div
+              class="status-dot ${this.connected
+                ? 'connected'
+                : 'reconnecting'}"
+            ></div>
+            ${this.connected ? 'LIVE' : 'RECONNECTING'}
           </div>
         </div>
       </header>
