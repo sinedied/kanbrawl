@@ -39,6 +39,12 @@ export class KanbrawlBoard extends LitElement {
       height: 100%;
     }
 
+    kanbrawl-column.folded {
+      flex: 0 0 44px;
+      min-width: 44px;
+      max-width: 44px;
+    }
+
     .touch-ghost {
       position: fixed;
       z-index: 9999;
@@ -87,6 +93,13 @@ export class KanbrawlBoard extends LitElement {
       kanbrawl-column {
         min-width: 0;
         max-width: none;
+      }
+
+      kanbrawl-column.folded {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: none;
+        width: auto;
       }
     }
   `;

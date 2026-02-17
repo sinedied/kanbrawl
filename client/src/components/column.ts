@@ -13,6 +13,7 @@ export class KanbrawlColumn extends LitElement {
   @state() private newPriority = "P1";
   @state() private newAssignee = "";
   @state() private dragOver = false;
+  @state() private folded = false;
 
   static styles = css`
     :host {
@@ -22,7 +23,8 @@ export class KanbrawlColumn extends LitElement {
       border: 1px solid var(--border-default);
       border-radius: 12px;
       overflow: hidden;
-      transition: background 0.3s ease, border-color 0.3s ease;
+      transition: background 0.3s ease, border-color 0.3s ease,
+        flex 0.3s ease, min-width 0.3s ease, width 0.3s ease;
     }
 
     :host(.drag-over) {
@@ -30,15 +32,105 @@ export class KanbrawlColumn extends LitElement {
       background: var(--accent-bg);
     }
 
+    /* ── Folded state (desktop) ── */
+    :host(.folded) {
+      min-width: 0 !important;
+      width: 44px;
+      flex: 0 0 44px;
+      cursor: pointer;
+    }
+
+    .folded-view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      padding: 12px 0;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    :host(.folded) .folded-view {
+      display: flex;
+    }
+
+    :host(.folded) .column-header,
+    :host(.folded) .tasks-list,
+    :host(.folded) .add-area {
+      display: none;
+    }
+
+    .folded-title {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-secondary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .folded-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--count-text);
+      background: var(--count-bg);
+      padding: 3px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .fold-btn {
+      background: none;
+      border: none;
+      color: var(--text-dimmed);
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 10px;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: color 0.15s ease, transform 0.3s ease;
+    }
+
+    .fold-btn:hover {
+      color: var(--accent);
+    }
+
+    .fold-btn .caret {
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+
+    .fold-btn.is-folded .caret {
+      transform: rotate(-90deg);
+    }
+
     .column-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
       padding: 16px 18px;
       background: var(--bg-column-header);
       border-bottom: 1px solid var(--border-default);
       transition: background 0.3s ease, border-color 0.3s ease;
       flex-shrink: 0;
+    }
+
+    .column-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .column-header-right {
+      margin-left: auto;
     }
 
     .column-title {
@@ -222,6 +314,35 @@ export class KanbrawlColumn extends LitElement {
     }
 
     @media (max-width: 600px) {
+      /* Folded state (mobile) */
+      :host(.folded) {
+        width: auto;
+        flex: 0 0 auto;
+        min-width: 0 !important;
+      }
+
+      .folded-view {
+        flex-direction: row;
+        height: auto;
+        padding: 10px 14px;
+        align-items: center;
+      }
+
+      .folded-view .fold-btn {
+        order: -1;
+      }
+
+      .folded-view .folded-count {
+        order: 1;
+      }
+
+      .folded-title {
+        writing-mode: horizontal-tb;
+        text-orientation: initial;
+        transform: none;
+        flex: 0 0 auto;
+      }
+
       .column-header {
         padding: 12px 14px;
       }
@@ -247,6 +368,7 @@ export class KanbrawlColumn extends LitElement {
     this.addEventListener("dragover", this._onDragOver);
     this.addEventListener("dragleave", this._onDragLeave);
     this.addEventListener("drop", this._onDrop);
+    this._restoreFoldState();
   }
 
   disconnectedCallback() {
@@ -347,11 +469,48 @@ export class KanbrawlColumn extends LitElement {
     }
   }
 
+  // --- Fold ---
+  private _foldKey(): string {
+    return `kanbrawl-fold-${this.name}`;
+  }
+
+  private _restoreFoldState() {
+    const stored = localStorage.getItem(this._foldKey());
+    if (stored === "1") this._setFolded(true);
+  }
+
+  private _setFolded(value: boolean) {
+    this.folded = value;
+    if (value) {
+      this.classList.add("folded");
+      localStorage.setItem(this._foldKey(), "1");
+    } else {
+      this.classList.remove("folded");
+      localStorage.removeItem(this._foldKey());
+    }
+  }
+
+  private toggleFold() {
+    this._setFolded(!this.folded);
+  }
+
   render() {
     return html`
+      <div class="folded-view" @click=${this.toggleFold}>
+        <span class="folded-count">${this.tasks.length}</span>
+        <span class="folded-title">${this.name}</span>
+        <button class="fold-btn is-folded" title="Unfold column">
+          <span class="caret">▼</span>
+        </button>
+      </div>
       <div class="column-header">
-        <span class="column-title">${this.name}</span>
-        <span class="task-count">${this.tasks.length}</span>
+        <div class="column-header-left">
+          <button class="fold-btn" @click=${this.toggleFold} title="Fold column">
+            <span class="caret">▼</span>
+          </button>
+          <span class="column-title">${this.name}</span>
+        </div>
+        <span class="task-count column-header-right">${this.tasks.length}</span>
       </div>
       <div class="tasks-list">
         ${this.tasks.length === 0
