@@ -5,11 +5,10 @@
 **A minimal live kanban board built for AI agents**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![MCP](https://img.shields.io/badge/MCP-Streamable_HTTP-ff6b35?style=flat-square)](https://modelcontextprotocol.io)
 [![Express](https://img.shields.io/badge/Express-5-000?style=flat-square&logo=express)](https://expressjs.com)
 [![Lit](https://img.shields.io/badge/Lit-3-324fff?style=flat-square&logo=lit&logoColor=white)](https://lit.dev)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![Node](https://img.shields.io/badge/Node.js-%3E%3D18-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
 [Features](#features) · [Getting Started](#getting-started) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
 
@@ -29,7 +28,7 @@ AI agents manage tasks on a kanban board through [MCP](https://modelcontextproto
 - 🏷️ **Task priority** — P0 (critical), P1 (normal), P2 (low) with visual badges
 - 👤 **Assignee tracking** — Assign tasks to agents or team members by name
 - 🔄 **Real-time sync** — Changes from agents or the UI propagate to all connected clients
-- 📦 **Zero infrastructure** — No database, no Redis, no external services
+- 📦 **Zero infrastructure** — No database, no external services
 
 ## Getting Started
 
@@ -159,22 +158,3 @@ npm run build:client   # Build client only (vite)
 npm run clean          # Remove dist/
 ```
 
-### Project Structure
-
-```
-src/
-├── server/              # Express + MCP server (TypeScript → dist/server/)
-│   ├── index.ts         # App setup, MCP + SSE wiring
-│   ├── store.ts         # BoardStore — JSON persistence + event emitter
-│   ├── tools.ts         # MCP tool registrations
-│   ├── api.ts           # REST API routes
-│   ├── sse.ts           # SSE client manager
-│   └── types.ts         # Shared TypeScript interfaces
-└── client/              # Lit 3 web client (Vite → dist/client/)
-    ├── src/
-    │   ├── app.ts       # Root <kanbrawl-app> component + SSE handling
-    │   ├── api.ts       # fetch-based REST API client
-    │   └── components/  # Board, Column, Task web components
-    ├── index.html       # Vite entry point
-    └── vite.config.ts   # Vite config with dev proxy
-```
