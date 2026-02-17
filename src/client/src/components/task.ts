@@ -105,6 +105,10 @@ export class KanbrawlTask extends LitElement {
       margin-bottom: 8px;
       word-break: break-word;
       white-space: pre-wrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .task-meta {
@@ -364,6 +368,23 @@ export class KanbrawlTask extends LitElement {
     );
   }
 
+  private handleViewTask(e: Event) {
+    // Don't open panel if clicking action buttons or in edit mode
+    const target = e.target as HTMLElement;
+    if (this.editing) return;
+    if (target.closest('.action-btn') ?? target.closest('.edit-form')) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('view-task', {
+        detail: { task: this.task },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private handleEditKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -426,7 +447,7 @@ export class KanbrawlTask extends LitElement {
     }
 
     return html`
-      <div class="task-card">
+      <div class="task-card" @click=${this.handleViewTask}>
         <div class="task-header">
           <span class="priority-badge priority-${this.task.priority}"
             >${this.task.priority}</span
