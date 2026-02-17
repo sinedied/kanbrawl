@@ -79,8 +79,6 @@ export function startServer(): Server {
   const server = app.listen(port, () => {
     console.log(`🥊 Kanbrawl server running on http://localhost:${port}`);
     console.log(`   MCP endpoint: http://localhost:${port}/mcp`);
-    console.log(`   SSE endpoint: http://localhost:${port}/events`);
-    console.log(`   API endpoint: http://localhost:${port}/api/board`);
   });
 
   return server;

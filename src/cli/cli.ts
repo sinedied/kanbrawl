@@ -21,23 +21,23 @@ export function run(arguments_: string[]): void {
 
   program
     .command('start', { isDefault: true })
-    .description('Start the Kanbrawl server')
-    .option('--stdio', 'Use stdio transport for MCP (instead of HTTP server)')
+    .description('start the Kanbrawl server')
+    .option('--stdio', 'use stdio transport for MCP (instead of HTTP server)')
     .action(startAction);
 
   program
     .command('task <title>')
-    .description('Create or update a task on the board')
-    .option('-d, --description <text>', 'Task description')
-    .option('-c, --column <name>', 'Target column')
-    .option('-p, --priority <level>', 'Priority level (0, 1, or 2)', '1')
-    .option('-a, --assignee <name>', 'Task assignee')
-    .option('-u, --update', 'Update existing task by title match')
+    .description('create or update a task on the board')
+    .option('-d, --description <text>', 'task description')
+    .option('-c, --column <name>', 'target column')
+    .option('-p, --priority <level>', 'priority level (0, 1, or 2)', '1')
+    .option('-a, --assignee <name>', 'task assignee')
+    .option('-u, --update', 'update existing task by title match')
     .action(taskAction);
 
   program
     .command('init')
-    .description('Initialize Kanbrawl configuration for your AI tools')
+    .description('initialize Kanbrawl configuration for your AI tools')
     .action(initAction);
 
   program.parse(arguments_);
