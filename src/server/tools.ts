@@ -45,24 +45,31 @@ Example return:
     "list_tasks",
     {
       title: "List Tasks",
-      description: `List tasks on the kanban board, optionally filtered by column.
+      description: `List tasks on the kanban board, optionally filtered by column and priority.
 
 Args:
-  - column (string, optional): Filter tasks to a specific column. Available columns: ${columns.join(", ")}
+  - column (string, optional): Filter tasks to a specific column. Defaults to "${columns[0]}". Available columns: ${columns.join(", ")}
+  - priority (string, optional): Filter tasks by priority level. One of: P0, P1, P2
 
 Returns:
   JSON array of tasks, each with: id, title, description, column, priority (P0-P2), assignee, createdAt, updatedAt
 
 Examples:
-  - List all tasks: {}
-  - List tasks in "Todo": { "column": "Todo" }`,
+  - List todo tasks (default): {}
+  - List tasks in "In progress": { "column": "In progress" }
+  - List high-priority todo tasks: { "priority": "P0" }
+  - List all P1 tasks in "Done": { "column": "Done", "priority": "P1" }`,
       inputSchema: {
         column: z
           .string()
           .optional()
           .describe(
-            `Column name to filter by. Available: ${columns.join(", ")}`,
+            `Column name to filter by. Defaults to "${columns[0]}". Available: ${columns.join(", ")}`,
           ),
+        priority: z
+          .enum(["P0", "P1", "P2"])
+          .optional()
+          .describe("Filter tasks by priority level"),
       },
       annotations: {
         readOnlyHint: true,
@@ -71,19 +78,23 @@ Examples:
         openWorldHint: false,
       },
     },
-    async ({ column }) => {
-      if (column && !store.getColumns().includes(column)) {
+    async ({ column, priority }) => {
+      const targetColumn = column ?? columns[0];
+      if (!store.getColumns().includes(targetColumn)) {
         return {
           content: [
             {
               type: "text",
-              text: `Error: Column "${column}" does not exist. Available columns: ${store.getColumns().join(", ")}`,
+              text: `Error: Column "${targetColumn}" does not exist. Available columns: ${store.getColumns().join(", ")}`,
             },
           ],
           isError: true,
         };
       }
-      const tasks = store.getTasks(column);
+      let tasks = store.getTasks(targetColumn);
+      if (priority) {
+        tasks = tasks.filter((t) => t.priority === priority);
+      }
       return {
         content: [{ type: "text", text: JSON.stringify(tasks, null, 2) }],
       };

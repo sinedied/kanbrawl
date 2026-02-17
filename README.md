@@ -94,7 +94,7 @@ All tools are available via the `/mcp` endpoint.
 | Tool | Description | Read-only |
 |------|-------------|-----------|
 | `get_columns` | Get columns with task counts | ✅ |
-| `list_tasks` | List tasks, optionally filtered by column | ✅ |
+| `list_tasks` | List tasks, filtered by column (default: first) and priority | ✅ |
 | `create_task` | Create a new task (with priority, assignee) | ❌ |
 | `move_task` | Move a task to a different column | ❌ |
 | `update_task` | Update task fields (title, description, priority, assignee) | ❌ |
