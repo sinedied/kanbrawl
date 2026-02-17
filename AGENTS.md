@@ -139,3 +139,14 @@ Interactive setup that:
 ### Stdio MCP transport
 
 Use `kanbrawl start --stdio` to run a stdio-based MCP server (no HTTP, no web UI). This is the transport used in generated MCP config files for AI tools (`npx -y kanbrawl start --stdio`).
+
+## Task Management
+
+Use the Kanbrawl MCP tools for task management when working on this project.
+
+### Workflow
+
+- Check existing tasks with `list_tasks` before creating to avoid duplicates
+- Move tasks between columns with `move_task` to track progress
+- Always set your name as assignee when working on a task
+- When building a plan, include task creation in it

@@ -1,8 +1,14 @@
 {
-	"servers": {
-		"kanbrawl": {
-			"type": "http",
-			"url": "http://localhost:3000/mcp"
-		}
-	}
+  "servers": {
+    "kanbrawl": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "kanbrawl",
+        "start",
+        "--stdio"
+      ]
+    }
+  }
 }
