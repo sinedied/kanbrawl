@@ -61,7 +61,7 @@ app.get('/events', (request, res) => {
 app.use('/api', createApiRouter(store));
 
 // Serve static client files (production build)
-const clientDirectory = resolve(__dirname, '../client');
+const clientDirectory = resolve(__dirname, '../../dist/client');
 if (existsSync(clientDirectory)) {
   app.use(express.static(clientDirectory));
   // SPA fallback
