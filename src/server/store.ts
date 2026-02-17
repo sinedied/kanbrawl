@@ -1,23 +1,24 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
-import { v4 as uuidv4 } from "uuid";
-import type { Task, KanbrawlData, BoardEvent } from "./types.js";
+import process from 'node:process';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
+import type { Task, KanbrawlData, BoardEvent } from './types.js';
 
-const DEFAULT_COLUMNS = ["Todo", "In progress", "Blocked", "Done"];
+const DEFAULT_COLUMNS = ['Todo', 'In progress', 'Blocked', 'Done'];
 
 export class BoardStore {
-  private data: KanbrawlData;
-  private filePath: string;
+  private readonly data: KanbrawlData;
+  private readonly filePath: string;
   private listeners: Array<(event: BoardEvent) => void> = [];
 
   constructor(filePath?: string) {
-    this.filePath = filePath ?? resolve(process.cwd(), "kanbrawl.json");
+    this.filePath = filePath ?? resolve(process.cwd(), 'kanbrawl.json');
     this.data = this.load();
   }
 
   private load(): KanbrawlData {
     if (existsSync(this.filePath)) {
-      const raw = readFileSync(this.filePath, "utf-8");
+      const raw = readFileSync(this.filePath, 'utf8');
       const parsed = JSON.parse(raw) as Partial<KanbrawlData>;
       return {
         columns: parsed.columns ?? DEFAULT_COLUMNS,
@@ -25,6 +26,7 @@ export class BoardStore {
         ...(parsed.theme ? { theme: parsed.theme } : {}),
       };
     }
+
     const defaults: KanbrawlData = {
       columns: [...DEFAULT_COLUMNS],
       tasks: [],
@@ -36,8 +38,8 @@ export class BoardStore {
   private save(data?: KanbrawlData): void {
     writeFileSync(
       this.filePath,
-      JSON.stringify(data ?? this.data, null, 2) + "\n",
-      "utf-8",
+      JSON.stringify(data ?? this.data, null, 2) + '\n',
+      'utf8',
     );
   }
 
@@ -84,7 +86,7 @@ export class BoardStore {
     const targetColumn = column ?? this.data.columns[0];
     if (!this.data.columns.includes(targetColumn)) {
       throw new Error(
-        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(", ")}`,
+        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(', ')}`,
       );
     }
 
@@ -92,24 +94,24 @@ export class BoardStore {
     const task: Task = {
       id: uuidv4(),
       title,
-      description: description ?? "",
+      description: description ?? '',
       column: targetColumn,
-      priority: (priority as Task["priority"]) ?? "P1",
-      assignee: assignee ?? "",
+      priority: (priority as Task['priority']) ?? 'P1',
+      assignee: assignee ?? '',
       createdAt: now,
       updatedAt: now,
     };
 
     this.data.tasks.push(task);
     this.save();
-    this.emit({ type: "task_created", task: structuredClone(task) });
+    this.emit({ type: 'task_created', task: structuredClone(task) });
     return structuredClone(task);
   }
 
   moveTask(id: string, targetColumn: string): Task {
     if (!this.data.columns.includes(targetColumn)) {
       throw new Error(
-        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(", ")}`,
+        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(', ')}`,
       );
     }
 
@@ -123,7 +125,7 @@ export class BoardStore {
     task.updatedAt = new Date().toISOString();
     this.save();
     this.emit({
-      type: "task_moved",
+      type: 'task_moved',
       task: structuredClone(task),
       fromColumn,
     });
@@ -132,7 +134,12 @@ export class BoardStore {
 
   updateTask(
     id: string,
-    fields: { title?: string; description?: string; priority?: string; assignee?: string },
+    fields: {
+      title?: string;
+      description?: string;
+      priority?: string;
+      assignee?: string;
+    },
   ): Task {
     const task = this.data.tasks.find((t) => t.id === id);
     if (!task) {
@@ -141,11 +148,12 @@ export class BoardStore {
 
     if (fields.title !== undefined) task.title = fields.title;
     if (fields.description !== undefined) task.description = fields.description;
-    if (fields.priority !== undefined) task.priority = fields.priority as Task["priority"];
+    if (fields.priority !== undefined)
+      task.priority = fields.priority as Task['priority'];
     if (fields.assignee !== undefined) task.assignee = fields.assignee;
     task.updatedAt = new Date().toISOString();
     this.save();
-    this.emit({ type: "task_updated", task: structuredClone(task) });
+    this.emit({ type: 'task_updated', task: structuredClone(task) });
     return structuredClone(task);
   }
 
@@ -157,17 +165,19 @@ export class BoardStore {
 
     this.data.tasks.splice(index, 1);
     this.save();
-    this.emit({ type: "task_deleted", taskId: id });
+    this.emit({ type: 'task_deleted', taskId: id });
   }
 
   updateColumns(columns: string[]): string[] {
     if (!Array.isArray(columns) || columns.length === 0) {
-      throw new Error("At least one column is required.");
+      throw new Error('At least one column is required.');
     }
+
     const trimmed = columns.map((c) => c.trim()).filter((c) => c.length > 0);
     if (trimmed.length === 0) {
-      throw new Error("At least one non-empty column name is required.");
+      throw new Error('At least one non-empty column name is required.');
     }
+
     const unique = [...new Set(trimmed)];
     const removedColumns = this.data.columns.filter((c) => !unique.includes(c));
 
@@ -184,7 +194,7 @@ export class BoardStore {
 
     this.data.columns = unique;
     this.save();
-    this.emit({ type: "columns_updated", columns: [...unique] });
+    this.emit({ type: 'columns_updated', columns: [...unique] });
     return [...unique];
   }
 }

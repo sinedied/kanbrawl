@@ -1,17 +1,17 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import type { Task } from "../types.js";
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { Task } from '../types.js';
 
-@customElement("kanbrawl-column")
+@customElement('kanbrawl-column')
 export class KanbrawlColumn extends LitElement {
-  @property() name = "";
+  @property() name = '';
   @property({ type: Array }) tasks: Task[] = [];
   @property({ type: Array }) allColumns: string[] = [];
   @state() private showAddForm = false;
-  @state() private newTitle = "";
-  @state() private newDescription = "";
-  @state() private newPriority = "P1";
-  @state() private newAssignee = "";
+  @state() private newTitle = '';
+  @state() private newDescription = '';
+  @state() private newPriority = 'P1';
+  @state() private newAssignee = '';
   @state() private dragOver = false;
   @state() private folded = false;
 
@@ -23,8 +23,12 @@ export class KanbrawlColumn extends LitElement {
       border: 1px solid var(--border-default);
       border-radius: 12px;
       overflow: hidden;
-      transition: background 0.3s ease, border-color 0.3s ease,
-        flex 0.3s ease, min-width 0.3s ease, width 0.3s ease;
+      transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        flex 0.3s ease,
+        min-width 0.3s ease,
+        width 0.3s ease;
     }
 
     :host(.drag-over) {
@@ -96,7 +100,9 @@ export class KanbrawlColumn extends LitElement {
       font-size: 10px;
       line-height: 1;
       flex-shrink: 0;
-      transition: color 0.15s ease, transform 0.3s ease;
+      transition:
+        color 0.15s ease,
+        transform 0.3s ease;
     }
 
     .fold-btn:hover {
@@ -119,7 +125,9 @@ export class KanbrawlColumn extends LitElement {
       padding: 16px 18px;
       background: var(--bg-column-header);
       border-bottom: 1px solid var(--border-default);
-      transition: background 0.3s ease, border-color 0.3s ease;
+      transition:
+        background 0.3s ease,
+        border-color 0.3s ease;
       flex-shrink: 0;
     }
 
@@ -151,7 +159,9 @@ export class KanbrawlColumn extends LitElement {
       border-radius: 10px;
       min-width: 24px;
       text-align: center;
-      transition: background 0.3s ease, color 0.3s ease;
+      transition:
+        background 0.3s ease,
+        color 0.3s ease;
     }
 
     .tasks-list {
@@ -230,7 +240,9 @@ export class KanbrawlColumn extends LitElement {
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       outline: none;
-      transition: border-color 0.2s ease, background 0.3s ease;
+      transition:
+        border-color 0.2s ease,
+        background 0.3s ease;
       box-sizing: border-box;
     }
 
@@ -254,7 +266,9 @@ export class KanbrawlColumn extends LitElement {
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       outline: none;
-      transition: border-color 0.2s ease, background 0.3s ease;
+      transition:
+        border-color 0.2s ease,
+        background 0.3s ease;
       box-sizing: border-box;
       cursor: pointer;
     }
@@ -370,29 +384,29 @@ export class KanbrawlColumn extends LitElement {
   // --- Drag & drop ---
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener("dragover", this._onDragOver);
-    this.addEventListener("dragleave", this._onDragLeave);
-    this.addEventListener("drop", this._onDrop);
+    this.addEventListener('dragover', this._onDragOver);
+    this.addEventListener('dragleave', this._onDragLeave);
+    this.addEventListener('drop', this._onDrop);
     this._restoreFoldState();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener("dragover", this._onDragOver);
-    this.removeEventListener("dragleave", this._onDragLeave);
-    this.removeEventListener("drop", this._onDrop);
+    this.removeEventListener('dragover', this._onDragOver);
+    this.removeEventListener('dragleave', this._onDragLeave);
+    this.removeEventListener('drop', this._onDrop);
   }
 
-  private _onDragOver = (e: DragEvent) => {
+  private readonly _onDragOver = (e: DragEvent) => {
     e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     if (!this.dragOver) {
       this.dragOver = true;
-      this.classList.add("drag-over");
+      this.classList.add('drag-over');
     }
   };
 
-  private _onDragLeave = (e: DragEvent) => {
+  private readonly _onDragLeave = (e: DragEvent) => {
     // Only clear when leaving the host element itself
     const rect = this.getBoundingClientRect();
     if (
@@ -402,16 +416,16 @@ export class KanbrawlColumn extends LitElement {
       e.clientY >= rect.bottom
     ) {
       this.dragOver = false;
-      this.classList.remove("drag-over");
+      this.classList.remove('drag-over');
     }
   };
 
-  private _onDrop = (e: DragEvent) => {
+  private readonly _onDrop = (e: DragEvent) => {
     e.preventDefault();
     this.dragOver = false;
-    this.classList.remove("drag-over");
+    this.classList.remove('drag-over');
 
-    const taskId = e.dataTransfer?.getData("text/plain");
+    const taskId = e.dataTransfer?.getData('text/plain');
     if (!taskId) return;
 
     // Only fire if task isn't already in this column
@@ -419,7 +433,7 @@ export class KanbrawlColumn extends LitElement {
     if (existingTask) return;
 
     this.dispatchEvent(
-      new CustomEvent("update-task", {
+      new CustomEvent('update-task', {
         detail: { id: taskId, column: this.name },
         bubbles: true,
         composed: true,
@@ -427,16 +441,17 @@ export class KanbrawlColumn extends LitElement {
     );
   };
 
-  private toggleAddForm() {
+  private async toggleAddForm() {
     this.showAddForm = !this.showAddForm;
-    this.newTitle = "";
-    this.newDescription = "";
-    this.newPriority = "P1";
-    this.newAssignee = "";
+    this.newTitle = '';
+    this.newDescription = '';
+    this.newPriority = 'P1';
+    this.newAssignee = '';
     if (this.showAddForm) {
-      this.updateComplete.then(() => {
-        this.shadowRoot?.querySelector<HTMLInputElement>('.add-form input')?.focus();
-      });
+      await this.updateComplete;
+      this.shadowRoot
+        ?.querySelector<HTMLInputElement>('.add-form input')
+        ?.focus();
     }
   }
 
@@ -444,7 +459,7 @@ export class KanbrawlColumn extends LitElement {
     if (!this.newTitle.trim()) return;
 
     this.dispatchEvent(
-      new CustomEvent("create-task", {
+      new CustomEvent('create-task', {
         detail: {
           title: this.newTitle.trim(),
           description: this.newDescription.trim(),
@@ -458,19 +473,20 @@ export class KanbrawlColumn extends LitElement {
     );
 
     this.showAddForm = false;
-    this.newTitle = "";
-    this.newDescription = "";
-    this.newPriority = "P1";
-    this.newAssignee = "";
+    this.newTitle = '';
+    this.newDescription = '';
+    this.newPriority = 'P1';
+    this.newAssignee = '';
   }
 
   private handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       this.submitTask();
     }
-    if (e.key === "Escape") {
-      this.toggleAddForm();
+
+    if (e.key === 'Escape') {
+      void this.toggleAddForm();
     }
   }
 
@@ -481,16 +497,16 @@ export class KanbrawlColumn extends LitElement {
 
   private _restoreFoldState() {
     const stored = localStorage.getItem(this._foldKey());
-    if (stored === "1") this._setFolded(true);
+    if (stored === '1') this._setFolded(true);
   }
 
   private _setFolded(value: boolean) {
     this.folded = value;
     if (value) {
-      this.classList.add("folded");
-      localStorage.setItem(this._foldKey(), "1");
+      this.classList.add('folded');
+      localStorage.setItem(this._foldKey(), '1');
     } else {
-      this.classList.remove("folded");
+      this.classList.remove('folded');
       localStorage.removeItem(this._foldKey());
     }
   }
@@ -510,7 +526,11 @@ export class KanbrawlColumn extends LitElement {
       </div>
       <div class="column-header">
         <div class="column-header-left">
-          <button class="fold-btn" @click=${this.toggleFold} title="Fold column">
+          <button
+            class="fold-btn"
+            @click=${this.toggleFold}
+            title="Fold column"
+          >
             <span class="caret">▼</span>
           </button>
           <span class="column-title">${this.name}</span>
@@ -554,7 +574,9 @@ export class KanbrawlColumn extends LitElement {
                   <select
                     .value=${this.newPriority}
                     @change=${(e: Event) =>
-                      (this.newPriority = (e.target as HTMLSelectElement).value)}
+                      (this.newPriority = (
+                        e.target as HTMLSelectElement
+                      ).value)}
                   >
                     <option value="P0">P0 – Critical</option>
                     <option value="P1" selected>P1 – Normal</option>

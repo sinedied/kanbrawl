@@ -36,6 +36,8 @@
     "dev:client": "vite dev src/client",
     "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",
     "start": "node dist/server/index.js",
+    "lint": "xo",
+    "lint:fix": "xo --fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
@@ -56,18 +58,50 @@
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
+  "xo": {
+    "prettier": true,
+    "space": true,
+    "rules": {
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          "allowList": {
+            "req": true,
+            "res": true,
+            "e": true,
+            "dir": true
+          }
+        }
+      ],
+      "@typescript-eslint/naming-convention": "off",
+      "@typescript-eslint/member-ordering": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "new-cap": "off",
+      "import-x/no-unassigned-import": "off",
+      "no-return-assign": "off"
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "bracketSpacing": true
+  },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.4",
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^10.0.0",
     "concurrently": "^9.1.2",
+    "eslint-config-xo-typescript": "^9.0.0",
     "semantic-release": "^24.2.9",
     "semantic-release-npm-github": "^6.0.0",
     "supertest": "^7.2.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "xo": "^1.2.3"
   }
 }

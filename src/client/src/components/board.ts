@@ -1,17 +1,17 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import type { Task } from "../types.js";
+import { LitElement, html, css } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import type { Task } from '../types.js';
 
-@customElement("kanbrawl-board")
+@customElement('kanbrawl-board')
 export class KanbrawlBoard extends LitElement {
   @property({ type: Array }) columns: string[] = [];
   @property({ type: Array }) tasks: Task[] = [];
 
   // Touch drag state (non-reactive, internal coordination only)
-  private _touchDragId: string | null = null;
-  private _touchTargetColumn: string | null = null;
-  private _touchTimer: number | null = null;
-  private _touchGhost: HTMLElement | null = null;
+  private _touchDragId: string | undefined = null;
+  private _touchTargetColumn: string | undefined = null;
+  private _touchTimer: number | undefined = null;
+  private _touchGhost: HTMLElement | undefined = null;
   private _touchStartX = 0;
   private _touchStartY = 0;
 
@@ -52,7 +52,7 @@ export class KanbrawlBoard extends LitElement {
       background: var(--accent);
       color: #fff;
       border-radius: 8px;
-      font-family: "DM Sans", sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       font-weight: 600;
       pointer-events: none;
@@ -105,51 +105,52 @@ export class KanbrawlBoard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener("touchstart", this._onTouchStart, { passive: true });
-    this.addEventListener("touchmove", this._onTouchMove, { passive: false });
-    this.addEventListener("touchend", this._onTouchEnd);
-    this.addEventListener("touchcancel", this._onTouchEnd);
+    this.addEventListener('touchstart', this._onTouchStart, { passive: true });
+    this.addEventListener('touchmove', this._onTouchMove, { passive: false });
+    this.addEventListener('touchend', this._onTouchEnd);
+    this.addEventListener('touchcancel', this._onTouchEnd);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener("touchstart", this._onTouchStart);
-    this.removeEventListener("touchmove", this._onTouchMove);
-    this.removeEventListener("touchend", this._onTouchEnd);
-    this.removeEventListener("touchcancel", this._onTouchEnd);
+    this.removeEventListener('touchstart', this._onTouchStart);
+    this.removeEventListener('touchmove', this._onTouchMove);
+    this.removeEventListener('touchend', this._onTouchEnd);
+    this.removeEventListener('touchcancel', this._onTouchEnd);
     this._cleanupTouchDrag();
   }
 
-  private _onTouchStart = (e: TouchEvent) => {
+  private readonly _onTouchStart = (e: TouchEvent) => {
     const path = e.composedPath();
 
     // Don't initiate drag on interactive elements
     if (
       path.some(
-        (el) =>
-          el instanceof HTMLElement &&
-          (el.tagName === "INPUT" ||
-            el.tagName === "TEXTAREA" ||
-            el.tagName === "SELECT" ||
-            el.tagName === "BUTTON" ||
-            el.classList.contains("edit-form") ||
-            el.classList.contains("add-form")),
+        (element) =>
+          element instanceof HTMLElement &&
+          (element.tagName === 'INPUT' ||
+            element.tagName === 'TEXTAREA' ||
+            element.tagName === 'SELECT' ||
+            element.tagName === 'BUTTON' ||
+            element.classList.contains('edit-form') ||
+            element.classList.contains('add-form')),
       )
     ) {
       return;
     }
 
-    const taskEl = path.find(
-      (el) => el instanceof HTMLElement && el.tagName === "KANBRAWL-TASK",
+    const taskElement = path.find(
+      (element) =>
+        element instanceof HTMLElement && element.tagName === 'KANBRAWL-TASK',
     ) as HTMLElement | undefined;
-    if (!taskEl) return;
+    if (!taskElement) return;
 
     const touch = e.touches[0];
     this._touchStartX = touch.clientX;
     this._touchStartY = touch.clientY;
 
-    this._touchTimer = window.setTimeout(() => {
-      const taskId = (taskEl as any).task?.id as string | undefined;
+    this._touchTimer = globalThis.setTimeout(() => {
+      const taskId = (taskElement as any).task?.id as string | undefined;
       if (!taskId) return;
       this._startTouchDrag(taskId, touch.clientX, touch.clientY);
     }, 300);
@@ -158,20 +159,20 @@ export class KanbrawlBoard extends LitElement {
   private _startTouchDrag(taskId: string, x: number, y: number) {
     this._touchDragId = taskId;
 
-    const ghost = document.createElement("div");
-    ghost.className = "touch-ghost";
+    const ghost = document.createElement('div');
+    ghost.className = 'touch-ghost';
     const task = this.tasks.find((t) => t.id === taskId);
-    ghost.textContent = task?.title ?? "";
+    ghost.textContent = task?.title ?? '';
     ghost.style.left = `${x - 40}px`;
     ghost.style.top = `${y - 20}px`;
-    this.shadowRoot!.appendChild(ghost);
+    this.shadowRoot!.append(ghost);
     this._touchGhost = ghost;
 
     // Haptic feedback
     navigator.vibrate?.(50);
   }
 
-  private _onTouchMove = (e: TouchEvent) => {
+  private readonly _onTouchMove = (e: TouchEvent) => {
     // Cancel long-press if finger moved before timer fired
     if (this._touchTimer !== null && !this._touchDragId) {
       const touch = e.touches[0];
@@ -181,6 +182,7 @@ export class KanbrawlBoard extends LitElement {
         clearTimeout(this._touchTimer);
         this._touchTimer = null;
       }
+
       return;
     }
 
@@ -196,8 +198,8 @@ export class KanbrawlBoard extends LitElement {
     }
 
     // Detect target column
-    const columns = this.shadowRoot!.querySelectorAll("kanbrawl-column");
-    let foundColumn: string | null = null;
+    const columns = this.shadowRoot!.querySelectorAll('kanbrawl-column');
+    let foundColumn: string | undefined = null;
     for (const col of columns) {
       const rect = col.getBoundingClientRect();
       if (
@@ -213,18 +215,19 @@ export class KanbrawlBoard extends LitElement {
 
     // Update column highlights
     if (foundColumn !== this._touchTargetColumn) {
-      columns.forEach((col) => {
+      for (const col of columns) {
         if ((col as any).name === foundColumn) {
-          col.classList.add("drag-over");
+          col.classList.add('drag-over');
         } else {
-          col.classList.remove("drag-over");
+          col.classList.remove('drag-over');
         }
-      });
+      }
+
       this._touchTargetColumn = foundColumn;
     }
   };
 
-  private _onTouchEnd = () => {
+  private readonly _onTouchEnd = () => {
     if (this._touchTimer !== null) {
       clearTimeout(this._touchTimer);
       this._touchTimer = null;
@@ -234,7 +237,7 @@ export class KanbrawlBoard extends LitElement {
       const task = this.tasks.find((t) => t.id === this._touchDragId);
       if (task && task.column !== this._touchTargetColumn) {
         this.dispatchEvent(
-          new CustomEvent("update-task", {
+          new CustomEvent('update-task', {
             detail: { id: this._touchDragId, column: this._touchTargetColumn },
             bubbles: true,
             composed: true,
@@ -251,13 +254,15 @@ export class KanbrawlBoard extends LitElement {
       clearTimeout(this._touchTimer);
       this._touchTimer = null;
     }
+
     if (this._touchGhost) {
       this._touchGhost.remove();
       this._touchGhost = null;
     }
-    this.shadowRoot
-      ?.querySelectorAll("kanbrawl-column")
-      .forEach((col) => col.classList.remove("drag-over"));
+
+    for (const col of this.shadowRoot?.querySelectorAll('kanbrawl-column') ??
+      [])
+      col.classList.remove('drag-over');
     this._touchDragId = null;
     this._touchTargetColumn = null;
   }

@@ -1,6 +1,6 @@
-export type Priority = "P0" | "P1" | "P2";
+export type Priority = 'P0' | 'P1' | 'P2';
 
-export interface Task {
+export type Task = {
   id: string;
   title: string;
   description: string;
@@ -9,10 +9,10 @@ export interface Task {
   assignee: string;
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface Board {
+export type Board = {
   columns: string[];
   tasks: Task[];
-  theme?: "light" | "dark";
-}
+  theme?: 'light' | 'dark';
+};

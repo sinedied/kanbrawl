@@ -1,19 +1,25 @@
-import { LitElement, html, css } from "lit";
-import { customElement, state } from "lit/decorators.js";
-import type { Board, Task } from "./types.js";
-import { fetchBoard, createTask, updateTask, deleteTask, updateColumns } from "./api.js";
-import "./components/column-settings.js";
+import { LitElement, html, css } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Board, Task } from './types.js';
+import {
+  fetchBoard,
+  createTask,
+  updateTask,
+  deleteTask,
+  updateColumns,
+} from './api.js';
+import './components/column-settings.js';
 
-type Theme = "light" | "dark";
+type Theme = 'light' | 'dark';
 
-@customElement("kanbrawl-app")
+@customElement('kanbrawl-app')
 export class KanbrawlApp extends LitElement {
   @state() private board: Board = { columns: [], tasks: [] };
   @state() private connected = false;
-  @state() private error: string | null = null;
-  @state() private theme: Theme = "dark";
+  @state() private error: string | undefined = null;
+  @state() private theme: Theme = 'dark';
 
-  private eventSource: EventSource | null = null;
+  private eventSource: EventSource | undefined = null;
 
   static styles = css`
     :host {
@@ -22,7 +28,9 @@ export class KanbrawlApp extends LitElement {
       height: 100vh;
       background: var(--bg-base);
       color: var(--text-primary);
-      transition: background 0.3s ease, color 0.3s ease;
+      transition:
+        background 0.3s ease,
+        color 0.3s ease;
 
       /* ── Dark theme (default) ── */
       --bg-base: #0a0a0f;
@@ -65,7 +73,7 @@ export class KanbrawlApp extends LitElement {
       --empty-text: #686888;
     }
 
-    :host([data-theme="light"]) {
+    :host([data-theme='light']) {
       --bg-base: #f2f0ed;
       --bg-surface: #ffffff;
       --bg-surface-hover: #f8f7f6;
@@ -114,7 +122,9 @@ export class KanbrawlApp extends LitElement {
       background: var(--bg-header);
       border-bottom: 1px solid var(--border-input);
       flex-shrink: 0;
-      transition: background 0.3s ease, border-color 0.3s ease;
+      transition:
+        background 0.3s ease,
+        border-color 0.3s ease;
     }
 
     .logo {
@@ -199,7 +209,9 @@ export class KanbrawlApp extends LitElement {
       font-size: 13px;
       color: var(--error-text);
       font-family: 'Space Mono', monospace;
-      transition: background 0.3s ease, border-color 0.3s ease;
+      transition:
+        background 0.3s ease,
+        border-color 0.3s ease;
     }
 
     main {
@@ -257,7 +269,7 @@ export class KanbrawlApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.initTheme();
-    this.loadBoard();
+    void this.loadBoard();
     this.connectSSE();
   }
 
@@ -267,35 +279,30 @@ export class KanbrawlApp extends LitElement {
   }
 
   private initTheme() {
-    const stored = localStorage.getItem("kanbrawl-theme") as Theme | null;
-    if (stored) {
-      this.theme = stored;
-    } else {
-      this.theme = this.getDefaultTheme();
-    }
+    const stored = localStorage.getItem('kanbrawl-theme') as Theme | undefined;
+    this.theme = stored ?? this.getDefaultTheme();
     this.applyTheme();
   }
 
   private getDefaultTheme(): Theme {
     // Config from kanbrawl.json takes precedence over system preference
     if (this.board.theme) return this.board.theme;
-    return window.matchMedia("(prefers-color-scheme: light)").matches
-      ? "light"
-      : "dark";
+    return globalThis.matchMedia('(prefers-color-scheme: light)').matches
+      ? 'light'
+      : 'dark';
   }
 
   private toggleTheme() {
-    this.theme = this.theme === "dark" ? "light" : "dark";
-    localStorage.setItem("kanbrawl-theme", this.theme);
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('kanbrawl-theme', this.theme);
     this.applyTheme();
   }
 
   private applyTheme() {
-    this.setAttribute("data-theme", this.theme);
+    this.dataset.theme = this.theme;
     document.body.style.background =
-      this.theme === "light" ? "#f2f0ed" : "#0a0a0f";
-    document.body.style.color =
-      this.theme === "light" ? "#1a1a1a" : "#ebebeb";
+      this.theme === 'light' ? '#f2f0ed' : '#0a0a0f';
+    document.body.style.color = this.theme === 'light' ? '#1a1a1a' : '#ebebeb';
   }
 
   private async loadBoard() {
@@ -303,26 +310,27 @@ export class KanbrawlApp extends LitElement {
       this.board = await fetchBoard();
       this.error = null;
       // Re-evaluate theme now that we have the server config
-      if (!localStorage.getItem("kanbrawl-theme") && this.board.theme) {
+      if (!localStorage.getItem('kanbrawl-theme') && this.board.theme) {
         this.theme = this.board.theme;
         this.applyTheme();
       }
-    } catch (e) {
-      this.error = e instanceof Error ? e.message : "Failed to load board";
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : 'Failed to load board';
     }
   }
 
   private connectSSE() {
-    this.eventSource = new EventSource("/events");
+    this.eventSource = new EventSource('/events');
 
-    this.eventSource.addEventListener("board_sync", (e: MessageEvent) => {
+    this.eventSource.addEventListener('board_sync', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = { ...data.board };
       this.connected = true;
       this.error = null;
     });
 
-    this.eventSource.addEventListener("task_created", (e: MessageEvent) => {
+    this.eventSource.addEventListener('task_created', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = {
         ...this.board,
@@ -330,7 +338,7 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
-    this.eventSource.addEventListener("task_updated", (e: MessageEvent) => {
+    this.eventSource.addEventListener('task_updated', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = {
         ...this.board,
@@ -340,7 +348,7 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
-    this.eventSource.addEventListener("task_moved", (e: MessageEvent) => {
+    this.eventSource.addEventListener('task_moved', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = {
         ...this.board,
@@ -350,7 +358,7 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
-    this.eventSource.addEventListener("task_deleted", (e: MessageEvent) => {
+    this.eventSource.addEventListener('task_deleted', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = {
         ...this.board,
@@ -358,7 +366,7 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
-    this.eventSource.addEventListener("columns_updated", (e: MessageEvent) => {
+    this.eventSource.addEventListener('columns_updated', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       this.board = {
         ...this.board,
@@ -366,23 +374,36 @@ export class KanbrawlApp extends LitElement {
       };
     });
 
-    this.eventSource.onopen = () => {
+    this.eventSource.addEventListener('open', () => {
       this.connected = true;
       this.error = null;
-    };
+    });
 
-    this.eventSource.onerror = () => {
+    this.eventSource.addEventListener('error', () => {
       this.connected = false;
-    };
+    });
   }
 
   private async handleCreateTask(
-    e: CustomEvent<{ title: string; description: string; column: string; priority?: string; assignee?: string }>,
+    e: CustomEvent<{
+      title: string;
+      description: string;
+      column: string;
+      priority?: string;
+      assignee?: string;
+    }>,
   ) {
     try {
-      await createTask(e.detail.title, e.detail.description, e.detail.column, e.detail.priority, e.detail.assignee);
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : "Failed to create task";
+      await createTask(
+        e.detail.title,
+        e.detail.description,
+        e.detail.column,
+        e.detail.priority,
+        e.detail.assignee,
+      );
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : 'Failed to create task';
     }
   }
 
@@ -399,27 +420,27 @@ export class KanbrawlApp extends LitElement {
     try {
       const { id, ...fields } = e.detail;
       await updateTask(id, fields);
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : "Failed to update task";
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : 'Failed to update task';
     }
   }
 
   private async handleDeleteTask(e: CustomEvent<{ id: string }>) {
     try {
       await deleteTask(e.detail.id);
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : "Failed to delete task";
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : 'Failed to delete task';
     }
   }
 
-  private async handleUpdateColumns(
-    e: CustomEvent<{ columns: string[] }>,
-  ) {
+  private async handleUpdateColumns(e: CustomEvent<{ columns: string[] }>) {
     try {
       await updateColumns(e.detail.columns);
-    } catch (err) {
+    } catch (error) {
       this.error =
-        err instanceof Error ? err.message : "Failed to update columns";
+        error instanceof Error ? error.message : 'Failed to update columns';
     }
   }
 
@@ -440,17 +461,15 @@ export class KanbrawlApp extends LitElement {
             title="Toggle theme"
             @click=${this.toggleTheme}
           >
-            ${this.theme === "dark" ? "☀️" : "🌙"}
+            ${this.theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <div class="status">
-            <div class="status-dot ${this.connected ? "connected" : ""}"></div>
-            ${this.connected ? "LIVE" : "CONNECTING"}
+            <div class="status-dot ${this.connected ? 'connected' : ''}"></div>
+            ${this.connected ? 'LIVE' : 'CONNECTING'}
           </div>
         </div>
       </header>
-      ${this.error
-        ? html`<div class="error-bar">⚠ ${this.error}</div>`
-        : null}
+      ${this.error ? html`<div class="error-bar">⚠ ${this.error}</div>` : null}
       <main>
         <kanbrawl-board
           .columns=${this.board.columns}

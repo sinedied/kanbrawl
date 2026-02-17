@@ -1,14 +1,14 @@
-import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import type { Task } from "../types.js";
+import { LitElement, html, css, nothing } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { Task } from '../types.js';
 
-@customElement("kanbrawl-task")
+@customElement('kanbrawl-task')
 export class KanbrawlTask extends LitElement {
   @property({ type: Object }) task!: Task;
   @property({ type: Array }) allColumns: string[] = [];
   @state() private editing = false;
-  @state() private editTitle = "";
-  @state() private editDescription = "";
+  @state() private editTitle = '';
+  @state() private editDescription = '';
 
   static styles = css`
     :host {
@@ -191,7 +191,9 @@ export class KanbrawlTask extends LitElement {
       font-size: 13px;
       outline: none;
       box-sizing: border-box;
-      transition: border-color 0.2s ease, background 0.3s ease;
+      transition:
+        border-color 0.2s ease,
+        background 0.3s ease;
     }
 
     .edit-form input:focus,
@@ -273,42 +275,45 @@ export class KanbrawlTask extends LitElement {
     }
   `;
 
-  @state() private editPriority = "P1";
-  @state() private editAssignee = "";
+  @state() private editPriority = 'P1';
+  @state() private editAssignee = '';
 
   connectedCallback() {
     super.connectedCallback();
     this.draggable = true;
-    this.addEventListener("dragstart", this._onDragStart);
-    this.addEventListener("dragend", this._onDragEnd);
+    this.addEventListener('dragstart', this._onDragStart);
+    this.addEventListener('dragend', this._onDragEnd);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener("dragstart", this._onDragStart);
-    this.removeEventListener("dragend", this._onDragEnd);
+    this.removeEventListener('dragstart', this._onDragStart);
+    this.removeEventListener('dragend', this._onDragEnd);
   }
 
-  private _onDragStart = (e: DragEvent) => {
+  private readonly _onDragStart = (e: DragEvent) => {
     if (this.editing) {
       e.preventDefault();
       return;
     }
-    e.dataTransfer?.setData("text/plain", this.task.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-    requestAnimationFrame(() => this.classList.add("dragging"));
+
+    e.dataTransfer?.setData('text/plain', this.task.id);
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+    requestAnimationFrame(() => {
+      this.classList.add('dragging');
+    });
   };
 
-  private _onDragEnd = () => {
-    this.classList.remove("dragging");
+  private readonly _onDragEnd = () => {
+    this.classList.remove('dragging');
   };
 
   private formatTime(iso: string): string {
     const date = new Date(iso);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 1) return 'just now';
     if (mins < 60) return `${mins}m ago`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h ago`;
@@ -333,7 +338,7 @@ export class KanbrawlTask extends LitElement {
   private saveEdit() {
     if (!this.editTitle.trim()) return;
     this.dispatchEvent(
-      new CustomEvent("update-task", {
+      new CustomEvent('update-task', {
         detail: {
           id: this.task.id,
           title: this.editTitle.trim(),
@@ -351,7 +356,7 @@ export class KanbrawlTask extends LitElement {
 
   private handleDelete() {
     this.dispatchEvent(
-      new CustomEvent("delete-task", {
+      new CustomEvent('delete-task', {
         detail: { id: this.task.id },
         bubbles: true,
         composed: true,
@@ -360,11 +365,12 @@ export class KanbrawlTask extends LitElement {
   }
 
   private handleEditKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       this.saveEdit();
     }
-    if (e.key === "Escape") {
+
+    if (e.key === 'Escape') {
       this.cancelEdit();
     }
   }
@@ -422,7 +428,9 @@ export class KanbrawlTask extends LitElement {
     return html`
       <div class="task-card">
         <div class="task-header">
-          <span class="priority-badge priority-${this.task.priority}">${this.task.priority}</span>
+          <span class="priority-badge priority-${this.task.priority}"
+            >${this.task.priority}</span
+          >
           <div class="task-title">${this.task.title}</div>
         </div>
         ${this.task.description
@@ -430,17 +438,17 @@ export class KanbrawlTask extends LitElement {
           : nothing}
         <div class="task-meta">
           <div class="task-meta-left">
-            <span class="task-time">${this.formatTime(this.task.updatedAt)}</span>
+            <span class="task-time"
+              >${this.formatTime(this.task.updatedAt)}</span
+            >
             ${this.task.assignee
-              ? html`<span class="task-assignee" title=${this.task.assignee}>${this.task.assignee}</span>`
+              ? html`<span class="task-assignee" title=${this.task.assignee}
+                  >${this.task.assignee}</span
+                >`
               : nothing}
           </div>
           <div class="task-actions">
-            <button
-              class="action-btn"
-              title="Edit"
-              @click=${this.startEdit}
-            >
+            <button class="action-btn" title="Edit" @click=${this.startEdit}>
               ✎
             </button>
             <button

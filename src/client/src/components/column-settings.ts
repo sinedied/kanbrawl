@@ -1,7 +1,7 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
-@customElement("kanbrawl-column-settings")
+@customElement('kanbrawl-column-settings')
 export class KanbrawlColumnSettings extends LitElement {
   @property({ type: Array }) columns: string[] = [];
   @state() private editColumns: string[] = [];
@@ -47,8 +47,12 @@ export class KanbrawlColumnSettings extends LitElement {
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .modal {
@@ -65,8 +69,14 @@ export class KanbrawlColumnSettings extends LitElement {
     }
 
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .modal-title {
@@ -254,29 +264,27 @@ export class KanbrawlColumnSettings extends LitElement {
   }
 
   private handleOverlayClick(e: MouseEvent) {
-    if ((e.target as HTMLElement).classList.contains("overlay")) {
+    if ((e.target as HTMLElement).classList.contains('overlay')) {
       this.close();
     }
   }
 
   private updateColumnName(index: number, value: string) {
-    this.editColumns = this.editColumns.map((c, i) =>
-      i === index ? value : c,
+    this.editColumns = this.editColumns.map((c, index_) =>
+      index_ === index ? value : c,
     );
   }
 
-  private addColumn() {
-    this.editColumns = [...this.editColumns, ""];
-    this.updateComplete.then(() => {
-      const inputs = this.shadowRoot?.querySelectorAll<HTMLInputElement>(
-        ".column-row input",
-      );
-      inputs?.[inputs.length - 1]?.focus();
-    });
+  private async addColumn() {
+    this.editColumns = [...this.editColumns, ''];
+    await this.updateComplete;
+    const inputs =
+      this.shadowRoot?.querySelectorAll<HTMLInputElement>('.column-row input');
+    inputs?.[inputs.length - 1]?.focus();
   }
 
   private removeColumn(index: number) {
-    this.editColumns = this.editColumns.filter((_, i) => i !== index);
+    this.editColumns = this.editColumns.filter((_, index_) => index_ !== index);
   }
 
   private moveColumn(index: number, direction: -1 | 1) {
@@ -302,7 +310,7 @@ export class KanbrawlColumnSettings extends LitElement {
       .map((c) => c.trim())
       .filter((c) => c.length > 0);
     this.dispatchEvent(
-      new CustomEvent("update-columns", {
+      new CustomEvent('update-columns', {
         detail: { columns },
         bubbles: true,
         composed: true,
@@ -312,8 +320,8 @@ export class KanbrawlColumnSettings extends LitElement {
   }
 
   private handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") this.close();
-    if (e.key === "Enter") this.save();
+    if (e.key === 'Escape') this.close();
+    if (e.key === 'Enter') this.save();
   }
 
   render() {
@@ -332,21 +340,25 @@ export class KanbrawlColumnSettings extends LitElement {
                 <h2 class="modal-title">Columns</h2>
                 <div class="column-list">
                   ${this.editColumns.map(
-                    (col, i) => html`
+                    (col, index) => html`
                       <div class="column-row">
                         <div class="move-btns">
                           <button
                             class="move-btn"
-                            ?disabled=${i === 0}
-                            @click=${() => this.moveColumn(i, -1)}
+                            ?disabled=${index === 0}
+                            @click=${() => {
+                              this.moveColumn(index, -1);
+                            }}
                             title="Move up"
                           >
                             ▲
                           </button>
                           <button
                             class="move-btn"
-                            ?disabled=${i === this.editColumns.length - 1}
-                            @click=${() => this.moveColumn(i, 1)}
+                            ?disabled=${index === this.editColumns.length - 1}
+                            @click=${() => {
+                              this.moveColumn(index, 1);
+                            }}
                             title="Move down"
                           >
                             ▼
@@ -356,16 +368,19 @@ export class KanbrawlColumnSettings extends LitElement {
                           type="text"
                           .value=${col}
                           placeholder="Column name"
-                          @input=${(e: InputEvent) =>
+                          @input=${(e: InputEvent) => {
                             this.updateColumnName(
-                              i,
+                              index,
                               (e.target as HTMLInputElement).value,
-                            )}
+                            );
+                          }}
                         />
                         <button
                           class="remove-btn"
                           ?disabled=${this.editColumns.length <= 1}
-                          @click=${() => this.removeColumn(i)}
+                          @click=${() => {
+                            this.removeColumn(index);
+                          }}
                           title="Remove column"
                         >
                           ✕
