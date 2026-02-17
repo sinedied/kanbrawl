@@ -25,7 +25,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run build
-      - run: npx semantic-release
+      - run: unset NODE_AUTH_TOKEN && npx semantic-release
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
