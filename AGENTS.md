@@ -45,6 +45,8 @@ npm install          # Install all dependencies
 npm run dev          # Start dev mode (server + Vite HMR)
 npm run build        # Build both server and client
 npm start            # Run production server
+npm run lint         # Run linter (XO)
+npm run lint:fix     # Run linter and auto-fix issues
 npm test             # Run tests once
 npm run test:watch   # Run tests in watch mode
 npm run build:server # Build server only (tsc)
@@ -56,6 +58,13 @@ npm run clean        # Remove dist/
 - Dev client runs on port 5173 (Vite with proxy to Express)
 - Production: single Express server on port 3000 serves everything
 
+## Linting
+
+- **Linter**: [XO](https://github.com/xojs/xo) with Prettier integration for consistent code formatting
+- XO wraps ESLint with opinionated defaults; project-specific overrides are in `package.json` under `"xo"`
+- Prettier config is also in `package.json` (single quotes, bracket spacing)
+- Run `npm run lint` to check for issues, `npm run lint:fix` to auto-fix
+
 ## Testing
 
 - **Framework**: Vitest with supertest for HTTP assertions
@@ -65,7 +74,8 @@ npm run clean        # Remove dist/
 - `tools.test.ts` — MCP tool tests (in-memory MCP client ↔ server via `InMemoryTransport`)
 - Each test suite creates a temp `BoardStore` backed by a disposable JSON file, cleaned up in `afterEach`
 - **New server features (API routes, MCP tools, store methods) must include corresponding tests**
-- Run `npm test` before submitting changes to ensure nothing is broken
+- **A task is only considered complete when `npm run build`, `npm run lint`, and `npm test` all pass**
+- Run all three checks before submitting changes to ensure nothing is broken
 
 ## Coding Guidelines
 
