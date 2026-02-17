@@ -10,11 +10,13 @@ export async function createTask(
   title: string,
   description: string,
   column: string,
+  priority?: string,
+  assignee?: string,
 ) {
   const res = await fetch(`${API_BASE}/api/tasks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, description, column }),
+    body: JSON.stringify({ title, description, column, priority, assignee }),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -25,7 +27,7 @@ export async function createTask(
 
 export async function updateTask(
   id: string,
-  fields: { title?: string; description?: string; column?: string },
+  fields: { title?: string; description?: string; column?: string; priority?: string; assignee?: string },
 ) {
   const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
     method: "PATCH",

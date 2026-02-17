@@ -64,6 +64,8 @@ npm run clean        # Remove dist/
 - All MCP tools include `title`, `description`, `inputSchema` (Zod), and `annotations`
 - REST API follows standard HTTP conventions (POST=create, PATCH=update, DELETE=delete)
 - Board mutations always go through `BoardStore` methods which persist to disk and emit events
+- Tasks have `priority` (P0, P1, P2; default P1) and optional `assignee` (string name)
+- Web UI uses drag-and-drop for moving tasks between columns (no move button)
 - SSE events: `board_sync`, `task_created`, `task_updated`, `task_moved`, `task_deleted`
 
 ## Constraints and Requirements

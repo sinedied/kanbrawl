@@ -10,6 +10,7 @@ export class KanbrawlColumn extends LitElement {
   @state() private showAddForm = false;
   @state() private newTitle = "";
   @state() private newDescription = "";
+  @state() private dragOver = false;
 
   static styles = css`
     :host {
@@ -20,6 +21,11 @@ export class KanbrawlColumn extends LitElement {
       border-radius: 12px;
       overflow: hidden;
       transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    :host(.drag-over) {
+      border-color: var(--accent);
+      background: var(--accent-bg);
     }
 
     .column-header {
@@ -55,6 +61,7 @@ export class KanbrawlColumn extends LitElement {
 
     .tasks-list {
       flex: 1;
+      min-height: 60px;
       overflow-y: auto;
       padding: 12px;
       display: flex;
@@ -141,6 +148,34 @@ export class KanbrawlColumn extends LitElement {
       min-height: 60px;
     }
 
+    .add-form select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.3s ease;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .add-form select:focus {
+      border-color: var(--accent);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .form-row > * {
+      flex: 1;
+    }
+
     .form-actions {
       display: flex;
       gap: 8px;
@@ -183,10 +218,60 @@ export class KanbrawlColumn extends LitElement {
     }
   `;
 
+  // --- Drag & drop ---
+  private handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    if (!this.dragOver) {
+      this.dragOver = true;
+      this.classList.add("drag-over");
+    }
+  }
+
+  private handleDragLeave(e: DragEvent) {
+    // Only clear when leaving the host element itself
+    const rect = this.getBoundingClientRect();
+    if (
+      e.clientX <= rect.left ||
+      e.clientX >= rect.right ||
+      e.clientY <= rect.top ||
+      e.clientY >= rect.bottom
+    ) {
+      this.dragOver = false;
+      this.classList.remove("drag-over");
+    }
+  }
+
+  private handleDrop(e: DragEvent) {
+    e.preventDefault();
+    this.dragOver = false;
+    this.classList.remove("drag-over");
+
+    const taskId = e.dataTransfer?.getData("text/plain");
+    if (!taskId) return;
+
+    // Only fire if task isn't already in this column
+    const existingTask = this.tasks.find((t) => t.id === taskId);
+    if (existingTask) return;
+
+    this.dispatchEvent(
+      new CustomEvent("update-task", {
+        detail: { id: taskId, column: this.name },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private toggleAddForm() {
     this.showAddForm = !this.showAddForm;
     this.newTitle = "";
     this.newDescription = "";
+    if (this.showAddForm) {
+      this.updateComplete.then(() => {
+        this.shadowRoot?.querySelector<HTMLInputElement>('.add-form input')?.focus();
+      });
+    }
   }
 
   private submitTask() {
@@ -225,7 +310,12 @@ export class KanbrawlColumn extends LitElement {
         <span class="column-title">${this.name}</span>
         <span class="task-count">${this.tasks.length}</span>
       </div>
-      <div class="tasks-list">
+      <div
+        class="tasks-list"
+        @dragover=${this.handleDragOver}
+        @dragleave=${this.handleDragLeave}
+        @drop=${this.handleDrop}
+      >
         ${this.tasks.length === 0
           ? html`<div class="empty-state">No tasks</div>`
           : this.tasks.map(
@@ -248,7 +338,6 @@ export class KanbrawlColumn extends LitElement {
                   @input=${(e: InputEvent) =>
                     (this.newTitle = (e.target as HTMLInputElement).value)}
                   @keydown=${this.handleKeydown}
-                  autofocus
                 />
                 <textarea
                   placeholder="Description (optional)"

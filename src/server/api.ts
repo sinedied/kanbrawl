@@ -12,10 +12,12 @@ export function createApiRouter(store: BoardStore): Router {
   // Create a task
   router.post("/tasks", (req, res) => {
     try {
-      const { title, description, column } = req.body as {
+      const { title, description, column, priority, assignee } = req.body as {
         title?: string;
         description?: string;
         column?: string;
+        priority?: string;
+        assignee?: string;
       };
 
       if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -23,7 +25,7 @@ export function createApiRouter(store: BoardStore): Router {
         return;
       }
 
-      const task = store.createTask(title.trim(), description?.trim(), column);
+      const task = store.createTask(title.trim(), description?.trim(), column, priority, assignee?.trim());
       res.status(201).json(task);
     } catch (error) {
       res
@@ -38,10 +40,12 @@ export function createApiRouter(store: BoardStore): Router {
   router.patch("/tasks/:id", (req, res) => {
     try {
       const { id } = req.params;
-      const { title, description, column } = req.body as {
+      const { title, description, column, priority, assignee } = req.body as {
         title?: string;
         description?: string;
         column?: string;
+        priority?: string;
+        assignee?: string;
       };
 
       // If column is being changed, move the task first
@@ -49,9 +53,9 @@ export function createApiRouter(store: BoardStore): Router {
         store.moveTask(id, column);
       }
 
-      // If title or description is being updated
-      if (title !== undefined || description !== undefined) {
-        const task = store.updateTask(id, { title, description });
+      // If any updatable fields are being changed
+      if (title !== undefined || description !== undefined || priority !== undefined || assignee !== undefined) {
+        const task = store.updateTask(id, { title, description, priority, assignee });
         res.json(task);
       } else {
         // Only column was changed, return the task

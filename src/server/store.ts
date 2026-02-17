@@ -78,6 +78,8 @@ export class BoardStore {
     title: string,
     description?: string,
     column?: string,
+    priority?: string,
+    assignee?: string,
   ): Task {
     const targetColumn = column ?? this.data.columns[0];
     if (!this.data.columns.includes(targetColumn)) {
@@ -92,6 +94,8 @@ export class BoardStore {
       title,
       description: description ?? "",
       column: targetColumn,
+      priority: (priority as Task["priority"]) ?? "P1",
+      assignee: assignee ?? "",
       createdAt: now,
       updatedAt: now,
     };
@@ -128,7 +132,7 @@ export class BoardStore {
 
   updateTask(
     id: string,
-    fields: { title?: string; description?: string },
+    fields: { title?: string; description?: string; priority?: string; assignee?: string },
   ): Task {
     const task = this.data.tasks.find((t) => t.id === id);
     if (!task) {
@@ -137,6 +141,8 @@ export class BoardStore {
 
     if (fields.title !== undefined) task.title = fields.title;
     if (fields.description !== undefined) task.description = fields.description;
+    if (fields.priority !== undefined) task.priority = fields.priority as Task["priority"];
+    if (fields.assignee !== undefined) task.assignee = fields.assignee;
     task.updatedAt = new Date().toISOString();
     this.save();
     this.emit({ type: "task_updated", task: structuredClone(task) });

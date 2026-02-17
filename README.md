@@ -20,9 +20,12 @@ AI agents manage tasks on a kanban board through MCP tools. Humans follow along 
 ## Features
 
 - **MCP Server** — Exposes kanban operations as MCP tools via Streamable HTTP transport
-- **Live Web UI** — Lit 3 web components with real-time SSE updates, dark theme, smooth animations
+- **Live Web UI** — Lit 3 web components with real-time SSE updates, drag-and-drop task management, dark/light theme
 - **Single JSON file** — All board config and task data lives in `kanbrawl.json`
 - **Customizable columns** — Configure column names and count in `kanbrawl.json`
+- **Task priority** — P0 (critical), P1 (normal), P2 (low) with visual badges
+- **Assignee tracking** — Assign tasks to agents or humans by name
+- **Drag & drop** — Move tasks between columns by dragging
 - **Human + Agent editing** — Agents use MCP tools, humans use the web UI; changes sync instantly
 - **Zero external dependencies** — No database, no Redis, no WebSocket library
 
@@ -85,9 +88,9 @@ All tools use the `kanbrawl_` prefix and are available via the `/mcp` endpoint.
 |------|-------------|-----------|
 | `kanbrawl_get_board` | Get full board state (columns + tasks) | ✅ |
 | `kanbrawl_list_tasks` | List tasks, optionally filtered by column | ✅ |
-| `kanbrawl_create_task` | Create a new task | ❌ |
+| `kanbrawl_create_task` | Create a new task (with priority, assignee) | ❌ |
 | `kanbrawl_move_task` | Move a task to a different column | ❌ |
-| `kanbrawl_update_task` | Update task title/description | ❌ |
+| `kanbrawl_update_task` | Update task fields (title, description, priority, assignee) | ❌ |
 | `kanbrawl_delete_task` | Delete a task | ❌ |
 
 ## Development

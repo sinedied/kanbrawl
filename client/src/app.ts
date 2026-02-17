@@ -320,10 +320,10 @@ export class KanbrawlApp extends LitElement {
   }
 
   private async handleCreateTask(
-    e: CustomEvent<{ title: string; description: string; column: string }>,
+    e: CustomEvent<{ title: string; description: string; column: string; priority?: string; assignee?: string }>,
   ) {
     try {
-      await createTask(e.detail.title, e.detail.description, e.detail.column);
+      await createTask(e.detail.title, e.detail.description, e.detail.column, e.detail.priority, e.detail.assignee);
     } catch (err) {
       this.error = err instanceof Error ? err.message : "Failed to create task";
     }
@@ -335,6 +335,8 @@ export class KanbrawlApp extends LitElement {
       title?: string;
       description?: string;
       column?: string;
+      priority?: string;
+      assignee?: string;
     }>,
   ) {
     try {

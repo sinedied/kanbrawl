@@ -17,7 +17,7 @@ export function registerTools(
 Returns:
   JSON object with:
   - columns (string[]): List of column names
-  - tasks (Task[]): All tasks with id, title, description, column, createdAt, updatedAt
+  - tasks (Task[]): All tasks with id, title, description, column, priority (P0-P2), assignee, createdAt, updatedAt
 
 Example return:
   { "columns": ["Todo", "In progress", "Done"], "tasks": [...] }`,
@@ -47,7 +47,7 @@ Args:
   - column (string, optional): Filter tasks to a specific column. Available columns: ${columns.join(", ")}
 
 Returns:
-  JSON array of tasks, each with: id, title, description, column, createdAt, updatedAt
+  JSON array of tasks, each with: id, title, description, column, priority (P0-P2), assignee, createdAt, updatedAt
 
 Examples:
   - List all tasks: {}
@@ -96,9 +96,11 @@ Args:
   - title (string, required): Task title (1-200 chars)
   - description (string, optional): Task description (max 2000 chars)
   - column (string, optional): Column to place the task in. Defaults to "${columns[0]}". Available: ${columns.join(", ")}
+  - priority (string, optional): Task priority. One of: P0, P1, P2. Defaults to P1
+  - assignee (string, optional): Name of the person or agent assigned to this task
 
 Returns:
-  The created task as JSON with: id, title, description, column, createdAt, updatedAt`,
+  The created task as JSON with: id, title, description, column, priority, assignee, createdAt, updatedAt`,
       inputSchema: {
         title: z
           .string()
@@ -116,6 +118,15 @@ Returns:
           .describe(
             `Column to place task in. Defaults to "${columns[0]}". Available: ${columns.join(", ")}`,
           ),
+        priority: z
+          .enum(["P0", "P1", "P2"])
+          .optional()
+          .describe("Task priority. Defaults to P1"),
+        assignee: z
+          .string()
+          .max(100)
+          .optional()
+          .describe("Name of the person or agent assigned to this task"),
       },
       annotations: {
         readOnlyHint: false,
@@ -124,9 +135,9 @@ Returns:
         openWorldHint: false,
       },
     },
-    async ({ title, description, column }) => {
+    async ({ title, description, column, priority, assignee }) => {
       try {
-        const task = store.createTask(title, description, column);
+        const task = store.createTask(title, description, column, priority, assignee);
         return {
           content: [{ type: "text", text: JSON.stringify(task, null, 2) }],
         };
@@ -199,12 +210,14 @@ Errors:
     "kanbrawl_update_task",
     {
       title: "Update Task",
-      description: `Update a task's title and/or description.
+      description: `Update a task's title, description, priority, and/or assignee.
 
 Args:
   - id (string, required): The task ID (UUID)
   - title (string, optional): New title (1-200 chars)
   - description (string, optional): New description (max 2000 chars)
+  - priority (string, optional): New priority. One of: P0, P1, P2
+  - assignee (string, optional): New assignee name (empty string to unassign)
 
 Returns:
   The updated task as JSON
@@ -224,6 +237,15 @@ Errors:
           .max(2000)
           .optional()
           .describe("New task description"),
+        priority: z
+          .enum(["P0", "P1", "P2"])
+          .optional()
+          .describe("New task priority"),
+        assignee: z
+          .string()
+          .max(100)
+          .optional()
+          .describe("New assignee name (empty string to unassign)"),
       },
       annotations: {
         readOnlyHint: false,
@@ -232,9 +254,9 @@ Errors:
         openWorldHint: false,
       },
     },
-    async ({ id, title, description }) => {
+    async ({ id, title, description, priority, assignee }) => {
       try {
-        const task = store.updateTask(id, { title, description });
+        const task = store.updateTask(id, { title, description, priority, assignee });
         return {
           content: [{ type: "text", text: JSON.stringify(task, null, 2) }],
         };
