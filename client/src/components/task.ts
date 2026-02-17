@@ -14,6 +14,17 @@ export class KanbrawlTask extends LitElement {
     :host {
       display: block;
       animation: slideIn 0.25s ease-out;
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    :host(:active) {
+      cursor: grabbing;
+    }
+
+    :host(.dragging) {
+      opacity: 0.4;
     }
 
     @keyframes slideIn {
@@ -32,18 +43,8 @@ export class KanbrawlTask extends LitElement {
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       padding: 14px;
-      cursor: grab;
       transition: all 0.2s ease;
       position: relative;
-      user-select: none;
-    }
-
-    .task-card:active {
-      cursor: grabbing;
-    }
-
-    .task-card.dragging {
-      opacity: 0.4;
     }
 
     .task-card:hover {
@@ -251,10 +252,56 @@ export class KanbrawlTask extends LitElement {
     .btn-edit-cancel:hover {
       background: var(--btn-secondary-hover);
     }
+
+    @media (max-width: 600px) {
+      .task-card {
+        padding: 12px;
+      }
+
+      .task-actions {
+        opacity: 1;
+      }
+
+      .action-btn {
+        padding: 8px 10px;
+        font-size: 16px;
+      }
+
+      .edit-row {
+        flex-direction: column;
+      }
+    }
   `;
 
   @state() private editPriority = "P1";
   @state() private editAssignee = "";
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.draggable = true;
+    this.addEventListener("dragstart", this._onDragStart);
+    this.addEventListener("dragend", this._onDragEnd);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener("dragstart", this._onDragStart);
+    this.removeEventListener("dragend", this._onDragEnd);
+  }
+
+  private _onDragStart = (e: DragEvent) => {
+    if (this.editing) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer?.setData("text/plain", this.task.id);
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    requestAnimationFrame(() => this.classList.add("dragging"));
+  };
+
+  private _onDragEnd = () => {
+    this.classList.remove("dragging");
+  };
 
   private formatTime(iso: string): string {
     const date = new Date(iso);
@@ -269,26 +316,9 @@ export class KanbrawlTask extends LitElement {
     return `${days}d ago`;
   }
 
-  // --- Drag ---
-  private handleDragStart(e: DragEvent) {
-    if (this.editing) {
-      e.preventDefault();
-      return;
-    }
-    e.dataTransfer?.setData("text/plain", this.task.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-    // Add dragging class after a tick so the ghost image is clean
-    requestAnimationFrame(() => {
-      this.shadowRoot?.querySelector(".task-card")?.classList.add("dragging");
-    });
-  }
-
-  private handleDragEnd() {
-    this.shadowRoot?.querySelector(".task-card")?.classList.remove("dragging");
-  }
-
   private startEdit() {
     this.editing = true;
+    this.draggable = false;
     this.editTitle = this.task.title;
     this.editDescription = this.task.description;
     this.editPriority = this.task.priority;
@@ -297,6 +327,7 @@ export class KanbrawlTask extends LitElement {
 
   private cancelEdit() {
     this.editing = false;
+    this.draggable = true;
   }
 
   private saveEdit() {
@@ -315,6 +346,7 @@ export class KanbrawlTask extends LitElement {
       }),
     );
     this.editing = false;
+    this.draggable = true;
   }
 
   private handleDelete() {
@@ -340,7 +372,7 @@ export class KanbrawlTask extends LitElement {
   render() {
     if (this.editing) {
       return html`
-        <div class="task-card" style="cursor: default;">
+        <div class="task-card">
           <div class="edit-form">
             <input
               type="text"
@@ -388,12 +420,7 @@ export class KanbrawlTask extends LitElement {
     }
 
     return html`
-      <div
-        class="task-card"
-        draggable="true"
-        @dragstart=${this.handleDragStart}
-        @dragend=${this.handleDragEnd}
-      >
+      <div class="task-card">
         <div class="task-header">
           <span class="priority-badge priority-${this.task.priority}">${this.task.priority}</span>
           <div class="task-title">${this.task.title}</div>

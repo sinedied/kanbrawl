@@ -216,19 +216,52 @@ export class KanbrawlColumn extends LitElement {
     .btn-cancel:hover {
       background: var(--btn-secondary-hover);
     }
+
+    @media (max-width: 600px) {
+      .column-header {
+        padding: 12px 14px;
+      }
+
+      .tasks-list {
+        padding: 8px;
+      }
+
+      .add-area {
+        padding: 8px;
+      }
+
+      .add-btn {
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
   `;
 
   // --- Drag & drop ---
-  private handleDragOver(e: DragEvent) {
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener("dragover", this._onDragOver);
+    this.addEventListener("dragleave", this._onDragLeave);
+    this.addEventListener("drop", this._onDrop);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener("dragover", this._onDragOver);
+    this.removeEventListener("dragleave", this._onDragLeave);
+    this.removeEventListener("drop", this._onDrop);
+  }
+
+  private _onDragOver = (e: DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
     if (!this.dragOver) {
       this.dragOver = true;
       this.classList.add("drag-over");
     }
-  }
+  };
 
-  private handleDragLeave(e: DragEvent) {
+  private _onDragLeave = (e: DragEvent) => {
     // Only clear when leaving the host element itself
     const rect = this.getBoundingClientRect();
     if (
@@ -240,9 +273,9 @@ export class KanbrawlColumn extends LitElement {
       this.dragOver = false;
       this.classList.remove("drag-over");
     }
-  }
+  };
 
-  private handleDrop(e: DragEvent) {
+  private _onDrop = (e: DragEvent) => {
     e.preventDefault();
     this.dragOver = false;
     this.classList.remove("drag-over");
@@ -261,7 +294,7 @@ export class KanbrawlColumn extends LitElement {
         composed: true,
       }),
     );
-  }
+  };
 
   private toggleAddForm() {
     this.showAddForm = !this.showAddForm;
@@ -310,12 +343,7 @@ export class KanbrawlColumn extends LitElement {
         <span class="column-title">${this.name}</span>
         <span class="task-count">${this.tasks.length}</span>
       </div>
-      <div
-        class="tasks-list"
-        @dragover=${this.handleDragOver}
-        @dragleave=${this.handleDragLeave}
-        @drop=${this.handleDrop}
-      >
+      <div class="tasks-list">
         ${this.tasks.length === 0
           ? html`<div class="empty-state">No tasks</div>`
           : this.tasks.map(

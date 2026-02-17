@@ -203,6 +203,37 @@ export class KanbrawlApp extends LitElement {
       flex: 1;
       overflow: hidden;
     }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 12px 16px;
+      }
+
+      h1 {
+        font-size: 16px;
+        letter-spacing: 2px;
+      }
+
+      .logo-icon {
+        font-size: 22px;
+      }
+
+      .header-controls {
+        gap: 10px;
+      }
+
+      .status span {
+        display: none;
+      }
+
+      .error-bar {
+        padding: 8px 16px;
+      }
+
+      main {
+        overflow: auto;
+      }
+    }
   `;
 
   connectedCallback() {
