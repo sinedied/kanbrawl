@@ -34,6 +34,8 @@
     "build:server": "tsc",
     "build:client": "vite build src/client",
     "build": "npm run build:server && npm run build:client",
+    "build:ext": "cd src/extension && npm install && node esbuild.mjs --production",
+    "watch:ext": "cd src/extension && npm install && node esbuild.mjs --watch",
     "dev:server": "tsx watch bin/cli.js",
     "dev:client": "vite dev src/client",
     "dev": "concurrently -k \"npm run dev:server\" \"npm run dev:client\"",

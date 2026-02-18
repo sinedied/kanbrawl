@@ -1,0 +1,109 @@
+{
+  "name": "vscode-kanbrawl",
+  "displayName": "Kanbrawl",
+  "description": "Live kanban board for AI agents — sidebar view and MCP server for Copilot",
+  "version": "1.0.0",
+  "publisher": "sinedied",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "kanbrawl.mcp-servers",
+        "label": "Kanbrawl"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kanbrawl",
+          "title": "Kanbrawl",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "kanbrawl": [
+        {
+          "id": "kanbrawlBoard",
+          "name": "Board",
+          "contextualTitle": "Kanbrawl"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "kanbrawlBoard",
+        "contents": "No kanbrawl.json found in this workspace.\n[Initialize Kanbrawl](command:kanbrawl.init)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kanbrawl.refresh",
+        "title": "Refresh Board",
+        "category": "Kanbrawl",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kanbrawl.moveTask",
+        "title": "Move Task to Column…",
+        "category": "Kanbrawl",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "kanbrawl.openWebUI",
+        "title": "Open Web UI",
+        "category": "Kanbrawl",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "kanbrawl.init",
+        "title": "Initialize Board",
+        "category": "Kanbrawl"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kanbrawl.openWebUI",
+          "when": "view == kanbrawlBoard",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kanbrawl.refresh",
+          "when": "view == kanbrawlBoard",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kanbrawl.moveTask",
+          "when": "view == kanbrawlBoard && viewItem == task",
+          "group": "inline"
+        },
+        {
+          "command": "kanbrawl.moveTask",
+          "when": "view == kanbrawlBoard && viewItem == task",
+          "group": "1_move"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs --production",
+    "watch": "node esbuild.mjs --watch",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/vscode": "^1.100.0",
+    "esbuild": "^0.25.0"
+  }
+}

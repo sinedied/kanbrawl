@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Kanbrawl Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/extension", "${workspaceFolder}/src/extension"],
+      "outFiles": ["${workspaceFolder}/src/extension/dist/**/*.js"],
+      "preLaunchTask": "watch:extension"
+    }
+  ]
+}

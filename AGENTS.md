@@ -42,6 +42,13 @@ src/
     src/components/  → board.ts, column.ts, task.ts components
     index.html       → Vite entry point
     vite.config.ts   → Vite config with dev proxy to Express
+  extension/         → VS Code extension (separate package, bundled with esbuild)
+    src/extension.ts → activate/deactivate, server lifecycle, MCP registration
+    src/api.ts       → REST + SSE client (Node http, same endpoints as web UI)
+    src/board-provider.ts → TreeDataProvider + drag-and-drop controller
+    media/icon.svg   → Activity bar icon
+    esbuild.mjs      → Bundle config (CJS output, vscode external)
+    package.json     → Extension manifest (views, commands, MCP provider)
 ```
 
 ## Development Workflow
@@ -57,6 +64,8 @@ npm test             # Run tests once
 npm run test:watch   # Run tests in watch mode
 npm run build:server # Build server only (tsc)
 npm run build:client # Build client only (vite build)
+npm run build:ext    # Build VS Code extension (esbuild)
+npm run watch:ext    # Watch-build VS Code extension
 npm run clean        # Remove dist/
 ```
 
@@ -96,6 +105,32 @@ npm run clean        # Remove dist/
 - Tasks have `priority` (P0, P1, P2; default P1) and optional `assignee` (string name)
 - Web UI uses drag-and-drop for moving tasks between columns (no move button)
 - SSE events: `board_sync`, `task_created`, `task_updated`, `task_moved`, `task_deleted`
+
+## VS Code Extension
+
+The `src/extension/` directory contains a VS Code extension that:
+- **Provides MCP tools to Copilot** via `vscode.lm.registerMcpServerDefinitionProvider()` using HTTP transport
+- **Shows a sidebar TreeView** with kanban columns as groups and tasks as items
+- **Manages the Kanbrawl server** as a child process (spawns `kanbrawl start` automatically)
+- **Uses the same REST API + SSE** as the web UI for data (no direct JSON file access)
+- **Supports drag-and-drop** to move tasks between columns
+
+### Extension Development
+
+```bash
+npm run build:ext    # Build extension (production)
+npm run watch:ext    # Watch-build for development
+```
+
+To test: open the workspace in VS Code, press F5 with the extension development host configured to `src/extension`.
+
+### Extension Architecture
+
+- `extension.ts`: Spawns `kanbrawl start` child process, registers MCP server (HTTP), creates TreeView, connects SSE
+- `api.ts`: REST + SSE client using Node `http` module, inline type definitions matching `src/server/types.ts`
+- `boardProvider.ts`: `TreeDataProvider` + `TreeDragAndDropController` — columns as root items, tasks as children with priority icons and assignee descriptions
+- Activation: contributed views and commands trigger activation — the `kanbrawl.init` command works even without a `kanbrawl.json`
+- The extension uses **CommonJS** (`"module": "commonjs"`) and is bundled with esbuild (separate from the ESM server/client code)
 
 ## Constraints and Requirements
 
