@@ -1,0 +1,32 @@
+name: release-extension
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: src/extension
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+        working-directory: .
+      - run: npm run build:ext
+        working-directory: .
+      - name: Package extension
+        run: npx @vscode/vsce package --no-dependencies
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-kanbrawl
+          path: src/extension/*.vsix
+      - name: Publish to VS Code Marketplace
+        run: npx @vscode/vsce publish --no-dependencies
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
