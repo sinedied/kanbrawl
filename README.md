@@ -12,6 +12,8 @@
 
 [Features](#features) · [Getting Started](#getting-started) · [CLI](#cli) · [Configuration](#configuration) · [MCP Tools](#mcp-tools) · [Architecture](#architecture) · [Development](#development)
 
+![Animation showing the Copilot agent using Kanbrawl](./docs/images/demo.gif)
+
 </div>
 
 ---
