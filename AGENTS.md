@@ -143,6 +143,7 @@ Use `kanbrawl start --stdio` to run a stdio-based MCP server (no HTTP, no web UI
 ## Task Management
 
 Use the Kanbrawl MCP tools for task management when working on this project.
+NEVER read the TODO file, it's only a scratchpad.
 
 ### Workflow
 
