@@ -90,19 +90,14 @@
     "menus": {
       "view/title": [
         {
-          "command": "kanbrawl.addTask",
+          "command": "kanbrawl.openWebUI",
           "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
           "group": "navigation@0"
         },
         {
-          "command": "kanbrawl.openWebUI",
-          "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
-          "group": "navigation@1"
-        },
-        {
           "command": "kanbrawl.refresh",
           "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
-          "group": "navigation@2"
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
