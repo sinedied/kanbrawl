@@ -7,7 +7,9 @@ const taskOutputSchema = {
   title: z.string(),
   description: z.string(),
   column: z.string(),
-  priority: z.enum(['P0', 'P1', 'P2']),
+  priority: z
+    .enum(['P0', 'P1', 'P2'])
+    .describe('P0 = urgent/critical, P1 = normal (default), P2 = low priority'),
   assignee: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -81,7 +83,9 @@ export function registerTools(server: McpServer, store: BoardStore): void {
         priority: z
           .enum(['P0', 'P1', 'P2'])
           .optional()
-          .describe('Filter tasks by priority level'),
+          .describe(
+            'Filter tasks by priority level: P0 = urgent/critical, P1 = normal, P2 = low priority',
+          ),
       },
       outputSchema: {
         tasks: z.array(z.object(taskOutputSchema)),
@@ -150,7 +154,9 @@ export function registerTools(server: McpServer, store: BoardStore): void {
         priority: z
           .enum(['P0', 'P1', 'P2'])
           .optional()
-          .describe('Task priority. Defaults to P1'),
+          .describe(
+            'Task priority: P0 = urgent/critical, P1 = normal (default), P2 = low priority',
+          ),
         assignee: z
           .string()
           .max(100)
@@ -249,7 +255,9 @@ export function registerTools(server: McpServer, store: BoardStore): void {
         priority: z
           .enum(['P0', 'P1', 'P2'])
           .optional()
-          .describe('New task priority'),
+          .describe(
+            'New task priority: P0 = urgent/critical, P1 = normal, P2 = low priority',
+          ),
         assignee: z
           .string()
           .max(100)
