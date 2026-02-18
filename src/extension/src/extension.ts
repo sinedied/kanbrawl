@@ -168,7 +168,7 @@ function stopServer(): void {
 
 function createStatusBar(): vscode.StatusBarItem {
   const item = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right
+    vscode.StatusBarAlignment.Right,
   );
   item.command = 'kanbrawl.openWebUI';
   updateStatusBarItem(item, 'starting');
@@ -359,6 +359,35 @@ async function setupBoard(context: vscode.ExtensionContext): Promise<void> {
   );
 }
 
+// ── Helpers ─────────────────────────────────────────────────────────
+
+const PRIORITY_ITEMS: vscode.QuickPickItem[] = [
+  { label: 'P0', description: 'Critical' },
+  { label: 'P1', description: 'Normal' },
+  { label: 'P2', description: 'Low' },
+];
+
+async function showPriorityPick(
+  activeLabel: string,
+  placeHolder: string,
+): Promise<vscode.QuickPickItem | undefined> {
+  return new Promise<vscode.QuickPickItem | undefined>((resolve) => {
+    const qp = vscode.window.createQuickPick();
+    qp.items = PRIORITY_ITEMS;
+    qp.placeholder = placeHolder;
+    qp.activeItems = PRIORITY_ITEMS.filter((p) => p.label === activeLabel);
+    qp.onDidAccept(() => {
+      resolve(qp.selectedItems[0]);
+      qp.dispose();
+    });
+    qp.onDidHide(() => {
+      resolve(undefined);
+      qp.dispose();
+    });
+    qp.show();
+  });
+}
+
 // ── Activation ──────────────────────────────────────────────────────
 
 export async function activate(
@@ -519,13 +548,9 @@ export async function activate(
           }
         }
 
-        const priorityPick = await vscode.window.showQuickPick(
-          [
-            { label: 'P0', description: 'Critical' },
-            { label: 'P1', description: 'Normal' },
-            { label: 'P2', description: 'Low' },
-          ],
-          { placeHolder: 'Select priority (default: P1)' },
+        const priorityPick = await showPriorityPick(
+          'P1',
+          'Select priority (default: P1)',
         );
 
         if (priorityPick === undefined) {
@@ -567,90 +592,66 @@ export async function activate(
 
         const { task } = item;
 
-        type FieldItem = vscode.QuickPickItem & {
-          field: 'title' | 'description' | 'priority' | 'assignee';
-        };
-
-        const fields: FieldItem[] = [
-          {
-            label: 'Title',
-            description: task.title,
-            field: 'title',
-          },
-          {
-            label: 'Description',
-            description: task.description || '(empty)',
-            field: 'description',
-          },
-          {
-            label: 'Priority',
-            description: task.priority,
-            field: 'priority',
-          },
-          {
-            label: 'Assignee',
-            description: task.assignee || '(none)',
-            field: 'assignee',
-          },
-        ];
-
-        const selected = await vscode.window.showQuickPick(fields, {
-          placeHolder: `Edit "${task.title}"`,
+        const title = await vscode.window.showInputBox({
+          prompt: 'Task title',
+          value: task.title,
+          validateInput: (v) => (v.trim() ? undefined : 'Title is required'),
         });
 
-        if (!selected) {
+        if (!title) {
           return;
         }
 
-        let value: string | undefined;
+        const description = await vscode.window.showInputBox({
+          prompt: 'Task description (leave empty to clear)',
+          value: task.description,
+        });
 
-        switch (selected.field) {
-          case 'title': {
-            value = await vscode.window.showInputBox({
-              prompt: 'Task title',
-              value: task.title,
-              validateInput: (v) =>
-                v.trim() ? undefined : 'Title is required',
-            });
-            break;
-          }
-
-          case 'description': {
-            value = await vscode.window.showInputBox({
-              prompt: 'Task description (leave empty to clear)',
-              value: task.description,
-            });
-            break;
-          }
-
-          case 'priority': {
-            const pick = await vscode.window.showQuickPick(
-              [
-                { label: 'P0', description: 'Critical' },
-                { label: 'P1', description: 'Normal' },
-                { label: 'P2', description: 'Low' },
-              ],
-              { placeHolder: 'Select priority' },
-            );
-            value = pick?.label;
-            break;
-          }
-
-          case 'assignee': {
-            value = await vscode.window.showInputBox({
-              prompt: 'Assignee name (leave empty to clear)',
-              value: task.assignee,
-            });
-            break;
-          }
+        if (description === undefined) {
+          return;
         }
 
-        if (value === undefined) {
+        const priorityPick = await showPriorityPick(
+          task.priority,
+          `Select priority (current: ${task.priority})`,
+        );
+
+        if (priorityPick === undefined) {
+          return;
+        }
+
+        const assignee = await vscode.window.showInputBox({
+          prompt: 'Assignee name (leave empty to clear)',
+          value: task.assignee,
+        });
+
+        if (assignee === undefined) {
+          return;
+        }
+
+        const updates: Record<string, string> = {};
+        if (title.trim() !== task.title) {
+          updates.title = title.trim();
+        }
+
+        if (description !== task.description) {
+          updates.description = description;
+        }
+
+        if (priorityPick.label !== task.priority) {
+          updates.priority = priorityPick.label;
+        }
+
+        if (assignee !== task.assignee) {
+          updates.assignee = assignee;
+        }
+
+        if (Object.keys(updates).length === 0) {
           return;
         }
 
         try {
-          await apiClient.updateTask(task.id, { [selected.field]: value });
+          await apiClient.updateTask(task.id, updates);
         } catch (error) {
           void vscode.window.showErrorMessage(
             `Failed to update task: ${error instanceof Error ? error.message : String(error)}`,

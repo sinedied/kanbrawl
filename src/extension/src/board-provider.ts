@@ -190,6 +190,11 @@ export class BoardTreeProvider
     item.contextValue = 'task';
     item.iconPath = this.priorityIcons[task.priority] ?? this.priorityIcons.P1;
     item.description = task.assignee || undefined;
+    item.command = {
+      command: 'kanbrawl.editTask',
+      title: 'Edit Task',
+      arguments: [element],
+    };
 
     const lines = [`**${task.priority}** — ${task.title}`];
     if (task.description) {
