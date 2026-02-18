@@ -70,10 +70,11 @@ Use the Kanbrawl MCP tools for task management when working on this project.
 
 ### Workflow
 
-- Check existing tasks with \`list_tasks\` before creating to avoid duplicates
-- Move tasks between columns with \`move_task\` to track progress
-- Always set your name as assignee when working on a task
 - When building a plan, include task creation in it
+- Check existing tasks with \`list_tasks\` before creating to avoid duplicates
+- Always reload tasks with \`list_tasks\` before starting work on a task to get the latest updates
+- Always set your name as assignee when working on a task
+- Move tasks between columns with \`move_task\` to track progress
 `;
 
 export function writeConfigFile(config: McpConfig, cwd: string): void {
