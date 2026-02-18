@@ -2,9 +2,39 @@ import process from 'node:process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Task, KanbrawlData, BoardEvent } from './types.js';
+import type { Task, Column, KanbrawlData, BoardEvent } from './types.js';
 
-const DEFAULT_COLUMNS = ['Todo', 'In progress', 'Blocked', 'Done'];
+const DEFAULT_COLUMNS: Column[] = [
+  { name: 'Todo', sortBy: 'priority', sortOrder: 'asc' },
+  { name: 'In progress', sortBy: 'created', sortOrder: 'asc' },
+  { name: 'Blocked', sortBy: 'created', sortOrder: 'asc' },
+  { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+];
+
+function migrateColumn(col: Column | string): Column {
+  if (typeof col === 'string') {
+    const lower = col.toLowerCase();
+    if (lower === 'todo') {
+      return { name: col, sortBy: 'priority', sortOrder: 'asc' };
+    }
+
+    if (lower === 'done') {
+      return { name: col, sortBy: 'updated', sortOrder: 'desc' };
+    }
+
+    return { name: col, sortBy: 'created', sortOrder: 'asc' };
+  }
+
+  return {
+    name: col.name,
+    sortBy: col.sortBy ?? 'created',
+    sortOrder: col.sortOrder ?? 'asc',
+  };
+}
+
+function columnNames(columns: Column[]): string[] {
+  return columns.map((c) => c.name);
+}
 
 export class BoardStore {
   private readonly data: KanbrawlData;
@@ -19,16 +49,21 @@ export class BoardStore {
   private load(): KanbrawlData {
     if (existsSync(this.filePath)) {
       const raw = readFileSync(this.filePath, 'utf8');
-      const parsed = JSON.parse(raw) as Partial<KanbrawlData>;
+      const parsed = JSON.parse(raw) as Partial<KanbrawlData> & {
+        columns?: Array<Column | string>;
+      };
+      const columns = parsed.columns
+        ? parsed.columns.map((c) => migrateColumn(c))
+        : [...DEFAULT_COLUMNS];
       return {
-        columns: parsed.columns ?? DEFAULT_COLUMNS,
+        columns,
         tasks: parsed.tasks ?? [],
         ...(parsed.theme ? { theme: parsed.theme } : {}),
       };
     }
 
     const defaults: KanbrawlData = {
-      columns: [...DEFAULT_COLUMNS],
+      columns: structuredClone(DEFAULT_COLUMNS),
       tasks: [],
     };
     this.save(defaults);
@@ -60,8 +95,12 @@ export class BoardStore {
     return structuredClone(this.data);
   }
 
-  getColumns(): string[] {
-    return [...this.data.columns];
+  getColumns(): Column[] {
+    return structuredClone(this.data.columns);
+  }
+
+  getColumnNames(): string[] {
+    return columnNames(this.data.columns);
   }
 
   getTasks(column?: string): Task[] {
@@ -83,10 +122,11 @@ export class BoardStore {
     priority?: string,
     assignee?: string,
   ): Task {
-    const targetColumn = column ?? this.data.columns[0];
-    if (!this.data.columns.includes(targetColumn)) {
+    const names = columnNames(this.data.columns);
+    const targetColumn = column ?? names[0];
+    if (!names.includes(targetColumn)) {
       throw new Error(
-        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(', ')}`,
+        `Column "${targetColumn}" does not exist. Available columns: ${names.join(', ')}`,
       );
     }
 
@@ -109,9 +149,10 @@ export class BoardStore {
   }
 
   moveTask(id: string, targetColumn: string): Task {
-    if (!this.data.columns.includes(targetColumn)) {
+    const names = columnNames(this.data.columns);
+    if (!names.includes(targetColumn)) {
       throw new Error(
-        `Column "${targetColumn}" does not exist. Available columns: ${this.data.columns.join(', ')}`,
+        `Column "${targetColumn}" does not exist. Available columns: ${names.join(', ')}`,
       );
     }
 
@@ -168,24 +209,41 @@ export class BoardStore {
     this.emit({ type: 'task_deleted', taskId: id });
   }
 
-  updateColumns(columns: string[]): string[] {
+  updateColumns(columns: Column[]): Column[] {
     if (!Array.isArray(columns) || columns.length === 0) {
       throw new Error('At least one column is required.');
     }
 
-    const trimmed = columns.map((c) => c.trim()).filter((c) => c.length > 0);
-    if (trimmed.length === 0) {
+    const processed = columns
+      .map((c) => ({
+        ...c,
+        name: c.name.trim(),
+        sortBy: c.sortBy ?? 'created',
+        sortOrder: c.sortOrder ?? 'asc',
+      }))
+      .filter((c) => c.name.length > 0);
+    if (processed.length === 0) {
       throw new Error('At least one non-empty column name is required.');
     }
 
-    const unique = [...new Set(trimmed)];
-    const removedColumns = this.data.columns.filter((c) => !unique.includes(c));
+    // Deduplicate by name, keeping first occurrence
+    const seen = new Set<string>();
+    const unique = processed.filter((c) => {
+      if (seen.has(c.name)) return false;
+      seen.add(c.name);
+      return true;
+    });
+
+    const newNames = columnNames(unique);
+    const removedNames = columnNames(this.data.columns).filter(
+      (n) => !newNames.includes(n),
+    );
 
     // Move tasks from removed columns to the first remaining column
-    if (removedColumns.length > 0) {
-      const fallback = unique[0];
+    if (removedNames.length > 0) {
+      const fallback = unique[0].name;
       for (const task of this.data.tasks) {
-        if (removedColumns.includes(task.column)) {
+        if (removedNames.includes(task.column)) {
           task.column = fallback;
           task.updatedAt = new Date().toISOString();
         }
@@ -194,7 +252,7 @@ export class BoardStore {
 
     this.data.columns = unique;
     this.save();
-    this.emit({ type: 'columns_updated', columns: [...unique] });
-    return [...unique];
+    this.emit({ type: 'columns_updated', columns: structuredClone(unique) });
+    return structuredClone(unique);
   }
 }

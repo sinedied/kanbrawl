@@ -1,12 +1,46 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { Task } from '../types.js';
+import type { Task, SortBy, SortOrder } from '../types.js';
+
+const PRIORITY_ORDER: Record<string, number> = { P0: 0, P1: 1, P2: 2 };
+
+function sortTasks(
+  tasks: Task[],
+  sortBy: SortBy,
+  sortOrder: SortOrder,
+): Task[] {
+  const sorted = [...tasks].sort((a, b) => {
+    let cmp = 0;
+    switch (sortBy) {
+      case 'priority': {
+        cmp =
+          (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+        break;
+      }
+
+      case 'created': {
+        cmp = a.createdAt.localeCompare(b.createdAt);
+        break;
+      }
+
+      case 'updated': {
+        cmp = a.updatedAt.localeCompare(b.updatedAt);
+        break;
+      }
+    }
+
+    return sortOrder === 'desc' ? -cmp : cmp;
+  });
+  return sorted;
+}
 
 @customElement('kanbrawl-column')
 export class KanbrawlColumn extends LitElement {
   @property() name = '';
   @property({ type: Array }) tasks: Task[] = [];
   @property({ type: Array }) allColumns: string[] = [];
+  @property() sortBy: SortBy = 'created';
+  @property() sortOrder: SortOrder = 'asc';
   @state() private showAddForm = false;
   @state() private newTitle = '';
   @state() private newDescription = '';
@@ -540,7 +574,7 @@ export class KanbrawlColumn extends LitElement {
       <div class="tasks-list">
         ${this.tasks.length === 0
           ? html`<div class="empty-state">No tasks</div>`
-          : this.tasks.map(
+          : sortTasks(this.tasks, this.sortBy, this.sortOrder).map(
               (task) => html`
                 <kanbrawl-task
                   .task=${task}

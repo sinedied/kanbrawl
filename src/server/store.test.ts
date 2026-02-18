@@ -3,7 +3,14 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BoardStore } from './store.js';
-import type { BoardEvent } from './types.js';
+import type { BoardEvent, Column } from './types.js';
+
+const DEFAULT_COLUMNS: Column[] = [
+  { name: 'Todo', sortBy: 'priority', sortOrder: 'asc' },
+  { name: 'In progress', sortBy: 'created', sortOrder: 'asc' },
+  { name: 'Blocked', sortBy: 'created', sortOrder: 'asc' },
+  { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+];
 
 function createTestStore() {
   const dir = mkdtempSync(join(tmpdir(), 'kanbrawl-store-test-'));
@@ -30,7 +37,7 @@ describe('BoardStore', () => {
     it('creates kanbrawl.json with defaults when file does not exist', () => {
       const raw = readFileSync(filePath, 'utf8');
       const data = JSON.parse(raw);
-      expect(data.columns).toEqual(['Todo', 'In progress', 'Blocked', 'Done']);
+      expect(data.columns).toEqual(DEFAULT_COLUMNS);
       expect(data.tasks).toEqual([]);
     });
 
@@ -42,7 +49,10 @@ describe('BoardStore', () => {
       writeFileSync(
         existingPath,
         JSON.stringify({
-          columns: ['A', 'B'],
+          columns: [
+            { name: 'A', sortBy: 'created', sortOrder: 'asc' },
+            { name: 'B', sortBy: 'updated', sortOrder: 'desc' },
+          ],
           tasks: [
             {
               id: 'test-id',
@@ -59,7 +69,7 @@ describe('BoardStore', () => {
       );
 
       const loaded = new BoardStore(existingPath);
-      expect(loaded.getColumns()).toEqual(['A', 'B']);
+      expect(loaded.getColumnNames()).toEqual(['A', 'B']);
       expect(loaded.getTasks()).toHaveLength(1);
       expect(loaded.getTasks()[0].title).toBe('Existing');
       rmSync(existingDirectory, { recursive: true, force: true });
@@ -73,7 +83,7 @@ describe('BoardStore', () => {
       writeFileSync(partialPath, JSON.stringify({}));
 
       const loaded = new BoardStore(partialPath);
-      expect(loaded.getColumns()).toEqual([
+      expect(loaded.getColumnNames()).toEqual([
         'Todo',
         'In progress',
         'Blocked',
@@ -82,17 +92,44 @@ describe('BoardStore', () => {
       expect(loaded.getTasks()).toEqual([]);
       rmSync(partialDirectory, { recursive: true, force: true });
     });
+
+    it('migrates old string[] columns to Column[] objects', () => {
+      const migrateDirectory = mkdtempSync(
+        join(tmpdir(), 'kanbrawl-store-test-'),
+      );
+      const migratePath = join(migrateDirectory, 'kanbrawl.json');
+      writeFileSync(
+        migratePath,
+        JSON.stringify({
+          columns: ['Todo', 'In progress', 'Done'],
+          tasks: [],
+        }),
+      );
+
+      const loaded = new BoardStore(migratePath);
+      const columns = loaded.getColumns();
+      expect(columns).toEqual([
+        { name: 'Todo', sortBy: 'priority', sortOrder: 'asc' },
+        { name: 'In progress', sortBy: 'created', sortOrder: 'asc' },
+        { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+      ]);
+      rmSync(migrateDirectory, { recursive: true, force: true });
+    });
   });
 
   // --- getBoard ---
   describe('getBoard', () => {
     it('returns a deep clone of board data', () => {
       const board = store.getBoard();
-      expect(board.columns).toEqual(['Todo', 'In progress', 'Blocked', 'Done']);
+      expect(board.columns).toEqual(DEFAULT_COLUMNS);
       expect(board.tasks).toEqual([]);
 
       // Mutating the clone should not affect the store
-      board.columns.push('Extra');
+      board.columns.push({
+        name: 'Extra',
+        sortBy: 'created',
+        sortOrder: 'asc',
+      });
       expect(store.getColumns()).toHaveLength(4);
     });
   });
@@ -100,18 +137,26 @@ describe('BoardStore', () => {
   // --- getColumns ---
   describe('getColumns', () => {
     it('returns default columns', () => {
-      expect(store.getColumns()).toEqual([
+      expect(store.getColumns()).toEqual(DEFAULT_COLUMNS);
+    });
+
+    it('returns a copy (not a reference)', () => {
+      const cols = store.getColumns();
+      cols.push({
+        name: 'Extra',
+        sortBy: 'created',
+        sortOrder: 'asc',
+      });
+      expect(store.getColumns()).toHaveLength(4);
+    });
+
+    it('getColumnNames returns just names', () => {
+      expect(store.getColumnNames()).toEqual([
         'Todo',
         'In progress',
         'Blocked',
         'Done',
       ]);
-    });
-
-    it('returns a copy (not a reference)', () => {
-      const cols = store.getColumns();
-      cols.push('Extra');
-      expect(store.getColumns()).toHaveLength(4);
     });
   });
 
@@ -365,14 +410,27 @@ describe('BoardStore', () => {
   // --- updateColumns ---
   describe('updateColumns', () => {
     it('replaces columns', () => {
-      const result = store.updateColumns(['A', 'B', 'C']);
-      expect(result).toEqual(['A', 'B', 'C']);
-      expect(store.getColumns()).toEqual(['A', 'B', 'C']);
+      const input: Column[] = [
+        { name: 'A', sortBy: 'created', sortOrder: 'asc' },
+        { name: 'B', sortBy: 'priority', sortOrder: 'desc' },
+        { name: 'C', sortBy: 'updated', sortOrder: 'asc' },
+      ];
+      const result = store.updateColumns(input);
+      expect(result).toEqual(input);
+      expect(store.getColumns()).toEqual(input);
     });
 
     it('trims and deduplicates column names', () => {
-      const result = store.updateColumns(['  A ', 'B', 'A', ' B ']);
-      expect(result).toEqual(['A', 'B']);
+      const result = store.updateColumns([
+        { name: '  A ', sortBy: 'created', sortOrder: 'asc' },
+        { name: 'B', sortBy: 'priority', sortOrder: 'desc' },
+        { name: 'A', sortBy: 'updated', sortOrder: 'asc' },
+        { name: ' B ', sortBy: 'created', sortOrder: 'asc' },
+      ]);
+      expect(result).toEqual([
+        { name: 'A', sortBy: 'created', sortOrder: 'asc' },
+        { name: 'B', sortBy: 'priority', sortOrder: 'desc' },
+      ]);
     });
 
     it('throws for empty array', () => {
@@ -380,12 +438,20 @@ describe('BoardStore', () => {
     });
 
     it('throws for all-whitespace names', () => {
-      expect(() => store.updateColumns(['  ', ''])).toThrow(/at least one/i);
+      expect(() =>
+        store.updateColumns([
+          { name: '  ', sortBy: 'created', sortOrder: 'asc' },
+          { name: '', sortBy: 'created', sortOrder: 'asc' },
+        ]),
+      ).toThrow(/at least one/i);
     });
 
     it('moves tasks from removed columns to first column', () => {
       store.createTask('In blocked', undefined, 'Blocked');
-      store.updateColumns(['Todo', 'Done']);
+      store.updateColumns([
+        { name: 'Todo', sortBy: 'priority', sortOrder: 'asc' },
+        { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+      ]);
       const task = store.getTasks()[0];
       expect(task.column).toBe('Todo');
     });
@@ -394,19 +460,31 @@ describe('BoardStore', () => {
       const events: BoardEvent[] = [];
       store.onChange((e) => events.push(e));
 
-      store.updateColumns(['X', 'Y']);
+      store.updateColumns([
+        { name: 'X', sortBy: 'created', sortOrder: 'asc' },
+        { name: 'Y', sortBy: 'updated', sortOrder: 'desc' },
+      ]);
       expect(events).toHaveLength(1);
       expect(events[0].type).toBe('columns_updated');
       if (events[0].type === 'columns_updated') {
-        expect(events[0].columns).toEqual(['X', 'Y']);
+        expect(events[0].columns).toEqual([
+          { name: 'X', sortBy: 'created', sortOrder: 'asc' },
+          { name: 'Y', sortBy: 'updated', sortOrder: 'desc' },
+        ]);
       }
     });
 
     it('persists to disk', () => {
-      store.updateColumns(['Alpha', 'Beta']);
+      store.updateColumns([
+        { name: 'Alpha', sortBy: 'priority', sortOrder: 'asc' },
+        { name: 'Beta', sortBy: 'created', sortOrder: 'desc' },
+      ]);
       const raw = readFileSync(filePath, 'utf8');
       const data = JSON.parse(raw);
-      expect(data.columns).toEqual(['Alpha', 'Beta']);
+      expect(data.columns).toEqual([
+        { name: 'Alpha', sortBy: 'priority', sortOrder: 'asc' },
+        { name: 'Beta', sortBy: 'created', sortOrder: 'desc' },
+      ]);
     });
   });
 

@@ -1,10 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import type { Task } from '../types.js';
+import type { Task, Column } from '../types.js';
 
 @customElement('kanbrawl-board')
 export class KanbrawlBoard extends LitElement {
-  @property({ type: Array }) columns: string[] = [];
+  @property({ type: Array }) columns: Column[] = [];
   @property({ type: Array }) tasks: Task[] = [];
 
   // Touch drag state (non-reactive, internal coordination only)
@@ -263,14 +263,17 @@ export class KanbrawlBoard extends LitElement {
   }
 
   render() {
+    const columnNames = this.columns.map((c) => c.name);
     return html`
       <div class="board">
         ${this.columns.map(
           (column) => html`
             <kanbrawl-column
-              .name=${column}
-              .tasks=${this.tasks.filter((t) => t.column === column)}
-              .allColumns=${this.columns}
+              .name=${column.name}
+              .tasks=${this.tasks.filter((t) => t.column === column.name)}
+              .allColumns=${columnNames}
+              .sortBy=${column.sortBy}
+              .sortOrder=${column.sortOrder}
             ></kanbrawl-column>
           `,
         )}

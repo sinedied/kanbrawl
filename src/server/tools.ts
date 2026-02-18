@@ -14,7 +14,7 @@ const taskOutputSchema = {
 };
 
 export function registerTools(server: McpServer, store: BoardStore): void {
-  const columns = store.getColumns();
+  const columnNames = store.getColumnNames();
 
   server.registerTool(
     'get_columns',
@@ -28,6 +28,12 @@ export function registerTools(server: McpServer, store: BoardStore): void {
           z.object({
             name: z.string().describe('Column name'),
             taskCount: z.number().describe('Number of tasks in the column'),
+            sortBy: z
+              .enum(['priority', 'created', 'updated'])
+              .describe('Sort field for tasks in this column'),
+            sortOrder: z
+              .enum(['asc', 'desc'])
+              .describe('Sort order for tasks in this column'),
           }),
         ),
       },
@@ -40,9 +46,11 @@ export function registerTools(server: McpServer, store: BoardStore): void {
     },
     async () => {
       const allTasks = store.getTasks();
-      const columnsWithCounts = store.getColumns().map((name) => ({
-        name,
-        taskCount: allTasks.filter((t) => t.column === name).length,
+      const columnsWithCounts = store.getColumns().map((col) => ({
+        name: col.name,
+        taskCount: allTasks.filter((t) => t.column === col.name).length,
+        sortBy: col.sortBy,
+        sortOrder: col.sortOrder,
       }));
       const structuredContent = { columns: columnsWithCounts };
       return {
@@ -68,7 +76,7 @@ export function registerTools(server: McpServer, store: BoardStore): void {
           .string()
           .optional()
           .describe(
-            `Column name to filter by. Defaults to "${columns[0]}". Available: ${columns.join(', ')}`,
+            `Column name to filter by. Defaults to "${columnNames[0]}". Available: ${columnNames.join(', ')}`,
           ),
         priority: z
           .enum(['P0', 'P1', 'P2'])
@@ -86,13 +94,13 @@ export function registerTools(server: McpServer, store: BoardStore): void {
       },
     },
     async ({ column, priority }) => {
-      const targetColumn = column ?? columns[0];
-      if (!store.getColumns().includes(targetColumn)) {
+      const targetColumn = column ?? columnNames[0];
+      if (!store.getColumnNames().includes(targetColumn)) {
         return {
           content: [
             {
               type: 'text',
-              text: `Error: Column "${targetColumn}" does not exist. Available columns: ${store.getColumns().join(', ')}`,
+              text: `Error: Column "${targetColumn}" does not exist. Available columns: ${store.getColumnNames().join(', ')}`,
             },
           ],
           isError: true,
@@ -137,7 +145,7 @@ export function registerTools(server: McpServer, store: BoardStore): void {
           .string()
           .optional()
           .describe(
-            `Column to place task in. Defaults to "${columns[0]}". Available: ${columns.join(', ')}`,
+            `Column to place task in. Defaults to "${columnNames[0]}". Available: ${columnNames.join(', ')}`,
           ),
         priority: z
           .enum(['P0', 'P1', 'P2'])
@@ -193,7 +201,7 @@ export function registerTools(server: McpServer, store: BoardStore): void {
         id: z.string().describe('Task ID (UUID)'),
         column: z
           .string()
-          .describe(`Target column. Available: ${columns.join(', ')}`),
+          .describe(`Target column. Available: ${columnNames.join(', ')}`),
       },
       outputSchema: taskOutputSchema,
       annotations: {

@@ -1,10 +1,11 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import type { Column, SortBy, SortOrder } from '../types.js';
 
 @customElement('kanbrawl-column-settings')
 export class KanbrawlColumnSettings extends LitElement {
-  @property({ type: Array }) columns: string[] = [];
-  @state() private editColumns: string[] = [];
+  @property({ type: Array }) columns: Column[] = [];
+  @state() private editColumns: Column[] = [];
   @state() private open = false;
 
   static styles = css`
@@ -252,10 +253,45 @@ export class KanbrawlColumnSettings extends LitElement {
     .move-btn:disabled:hover {
       color: var(--text-dimmed);
     }
+
+    .sort-row {
+      display: flex;
+      gap: 6px;
+      padding: 0 0 0 30px;
+      margin-top: -4px;
+    }
+
+    .sort-row select {
+      flex: 1;
+      padding: 5px 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 5px;
+      color: var(--text-secondary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      outline: none;
+      transition: border-color 0.2s ease;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .sort-row select:focus {
+      border-color: var(--accent);
+    }
+
+    .sort-label {
+      font-size: 10px;
+      color: var(--text-dimmed);
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.5px;
+      align-self: center;
+      flex-shrink: 0;
+    }
   `;
 
   show() {
-    this.editColumns = [...this.columns];
+    this.editColumns = structuredClone(this.columns);
     this.open = true;
   }
 
@@ -271,12 +307,27 @@ export class KanbrawlColumnSettings extends LitElement {
 
   private updateColumnName(index: number, value: string) {
     this.editColumns = this.editColumns.map((c, index_) =>
-      index_ === index ? value : c,
+      index_ === index ? { ...c, name: value } : c,
+    );
+  }
+
+  private updateSortBy(index: number, value: SortBy) {
+    this.editColumns = this.editColumns.map((c, index_) =>
+      index_ === index ? { ...c, sortBy: value } : c,
+    );
+  }
+
+  private updateSortOrder(index: number, value: SortOrder) {
+    this.editColumns = this.editColumns.map((c, index_) =>
+      index_ === index ? { ...c, sortOrder: value } : c,
     );
   }
 
   private async addColumn() {
-    this.editColumns = [...this.editColumns, ''];
+    this.editColumns = [
+      ...this.editColumns,
+      { name: '', sortBy: 'created', sortOrder: 'asc' },
+    ];
     await this.updateComplete;
     const inputs =
       this.shadowRoot?.querySelectorAll<HTMLInputElement>('.column-row input');
@@ -297,7 +348,7 @@ export class KanbrawlColumnSettings extends LitElement {
 
   private get isValid(): boolean {
     const trimmed = this.editColumns
-      .map((c) => c.trim())
+      .map((c) => c.name.trim())
       .filter((c) => c.length > 0);
     if (trimmed.length === 0) return false;
     // Check for duplicates
@@ -307,8 +358,8 @@ export class KanbrawlColumnSettings extends LitElement {
   private save() {
     if (!this.isValid) return;
     const columns = this.editColumns
-      .map((c) => c.trim())
-      .filter((c) => c.length > 0);
+      .filter((c) => c.name.trim().length > 0)
+      .map((c) => ({ ...c, name: c.name.trim() }));
     this.dispatchEvent(
       new CustomEvent('update-columns', {
         detail: { columns },
@@ -366,7 +417,7 @@ export class KanbrawlColumnSettings extends LitElement {
                         </div>
                         <input
                           type="text"
-                          .value=${col}
+                          .value=${col.name}
                           placeholder="Column name"
                           @input=${(e: InputEvent) => {
                             this.updateColumnName(
@@ -385,6 +436,35 @@ export class KanbrawlColumnSettings extends LitElement {
                         >
                           ✕
                         </button>
+                      </div>
+                      <div class="sort-row">
+                        <span class="sort-label">Sort</span>
+                        <select
+                          .value=${col.sortBy}
+                          @change=${(e: Event) => {
+                            this.updateSortBy(
+                              index,
+                              (e.target as HTMLSelectElement).value as SortBy,
+                            );
+                          }}
+                        >
+                          <option value="priority">Priority</option>
+                          <option value="created">Created</option>
+                          <option value="updated">Updated</option>
+                        </select>
+                        <select
+                          .value=${col.sortOrder}
+                          @change=${(e: Event) => {
+                            this.updateSortOrder(
+                              index,
+                              (e.target as HTMLSelectElement)
+                                .value as SortOrder,
+                            );
+                          }}
+                        >
+                          <option value="asc">Ascending</option>
+                          <option value="desc">Descending</option>
+                        </select>
                       </div>
                     `,
                   )}

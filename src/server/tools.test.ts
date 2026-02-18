@@ -68,10 +68,20 @@ describe('MCP Tools', () => {
       const data = result.json();
 
       expect(data.columns).toEqual([
-        { name: 'Todo', taskCount: 0 },
-        { name: 'In progress', taskCount: 0 },
-        { name: 'Blocked', taskCount: 0 },
-        { name: 'Done', taskCount: 0 },
+        { name: 'Todo', taskCount: 0, sortBy: 'priority', sortOrder: 'asc' },
+        {
+          name: 'In progress',
+          taskCount: 0,
+          sortBy: 'created',
+          sortOrder: 'asc',
+        },
+        {
+          name: 'Blocked',
+          taskCount: 0,
+          sortBy: 'created',
+          sortOrder: 'asc',
+        },
+        { name: 'Done', taskCount: 0, sortBy: 'updated', sortOrder: 'desc' },
       ]);
       expect(result.structured).toEqual(data);
     });

@@ -35,7 +35,7 @@ describe('REST API', () => {
     it('returns default board with columns and empty tasks', async () => {
       const res = await request(app).get('/api/board');
       expect(res.status).toBe(200);
-      expect(res.body.columns).toEqual([
+      expect(res.body.columns.map((c: { name: string }) => c.name)).toEqual([
         'Todo',
         'In progress',
         'Blocked',
@@ -207,10 +207,20 @@ describe('REST API', () => {
     it('updates columns', async () => {
       const res = await request(app)
         .put('/api/columns')
-        .send({ columns: ['Backlog', 'Active', 'Done'] });
+        .send({
+          columns: [
+            { name: 'Backlog', sortBy: 'created', sortOrder: 'asc' },
+            { name: 'Active', sortBy: 'priority', sortOrder: 'asc' },
+            { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+          ],
+        });
 
       expect(res.status).toBe(200);
-      expect(res.body.columns).toEqual(['Backlog', 'Active', 'Done']);
+      expect(res.body.columns.map((c: { name: string }) => c.name)).toEqual([
+        'Backlog',
+        'Active',
+        'Done',
+      ]);
     });
 
     it('returns 400 when columns is not an array', async () => {
@@ -236,7 +246,13 @@ describe('REST API', () => {
       // Remove "Blocked" column
       await request(app)
         .put('/api/columns')
-        .send({ columns: ['Todo', 'In progress', 'Done'] });
+        .send({
+          columns: [
+            { name: 'Todo', sortBy: 'priority', sortOrder: 'asc' },
+            { name: 'In progress', sortBy: 'created', sortOrder: 'asc' },
+            { name: 'Done', sortBy: 'updated', sortOrder: 'desc' },
+          ],
+        });
 
       const board = await request(app).get('/api/board');
       expect(board.body.tasks[0].column).toBe('Todo');

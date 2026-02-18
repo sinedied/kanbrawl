@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { BoardStore } from './store.js';
+import type { Column } from './types.js';
 
 export function createApiRouter(store: BoardStore): Router {
   // eslint-disable-next-line new-cap
@@ -106,9 +107,9 @@ export function createApiRouter(store: BoardStore): Router {
   // Update columns
   router.put('/columns', (request, res) => {
     try {
-      const { columns } = request.body as { columns?: string[] };
+      const { columns } = request.body as { columns?: Column[] };
       if (!columns || !Array.isArray(columns)) {
-        res.status(400).json({ error: 'columns must be an array of strings' });
+        res.status(400).json({ error: 'columns must be an array' });
         return;
       }
 

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import type { Board, Task } from './types.js';
+import type { Board, Task, Column } from './types.js';
 import {
   fetchBoard,
   createTask,
@@ -721,7 +721,7 @@ export class KanbrawlApp extends LitElement {
     `;
   }
 
-  private async handleUpdateColumns(e: CustomEvent<{ columns: string[] }>) {
+  private async handleUpdateColumns(e: CustomEvent<{ columns: Column[] }>) {
     try {
       await updateColumns(e.detail.columns);
     } catch (error) {

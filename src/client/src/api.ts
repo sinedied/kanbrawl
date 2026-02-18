@@ -1,3 +1,5 @@
+import type { Column } from './types.js';
+
 const API_BASE = '';
 
 export async function fetchBoard() {
@@ -59,7 +61,7 @@ export async function deleteTask(id: string) {
   }
 }
 
-export async function updateColumns(columns: string[]) {
+export async function updateColumns(columns: Column[]) {
   const res = await fetch(`${API_BASE}/api/columns`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
