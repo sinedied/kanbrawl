@@ -153,6 +153,67 @@ describe('MCP Tools', () => {
       expect(result.isError).toBe(true);
       expect(result.text).toMatch(/does not exist/i);
     });
+
+    it('filters by assignee (case-insensitive)', async () => {
+      await callTool(client, 'create_task', {
+        title: 'Mine',
+        assignee: 'Alice',
+      });
+      await callTool(client, 'create_task', {
+        title: 'Theirs',
+        assignee: 'Bob',
+      });
+
+      const result = await callTool(client, 'list_tasks', {
+        assignee: 'alice',
+      });
+      const { tasks } = result.json();
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].title).toBe('Mine');
+    });
+
+    it('limits results with max param (default 10)', async () => {
+      for (let index = 0; index < 12; index++) {
+        // eslint-disable-next-line no-await-in-loop
+        await callTool(client, 'create_task', { title: `Task ${index}` });
+      }
+
+      const result = await callTool(client, 'list_tasks');
+      expect(result.json().tasks).toHaveLength(10);
+    });
+
+    it('respects custom max param', async () => {
+      for (let index = 0; index < 5; index++) {
+        // eslint-disable-next-line no-await-in-loop
+        await callTool(client, 'create_task', { title: `Task ${index}` });
+      }
+
+      const result = await callTool(client, 'list_tasks', { max: 3 });
+      expect(result.json().tasks).toHaveLength(3);
+    });
+
+    it('sorts by priority (P0 first) then by created date', async () => {
+      await callTool(client, 'create_task', {
+        title: 'Low',
+        priority: 'P2',
+      });
+      await callTool(client, 'create_task', {
+        title: 'High',
+        priority: 'P0',
+      });
+      await callTool(client, 'create_task', {
+        title: 'Normal',
+        priority: 'P1',
+      });
+      await callTool(client, 'create_task', {
+        title: 'High2',
+        priority: 'P0',
+      });
+
+      const result = await callTool(client, 'list_tasks', { max: 100 });
+      const titles = result.json().tasks.map((t: { title: string }) => t.title);
+      expect(titles).toEqual(['High', 'High2', 'Normal', 'Low']);
+    });
   });
 
   // --- create_task ---

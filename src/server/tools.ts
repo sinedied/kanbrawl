@@ -72,7 +72,7 @@ export function registerTools(server: McpServer, store: BoardStore): void {
     {
       title: 'List Tasks',
       description:
-        'List tasks on the kanban board, optionally filtered by column and priority.',
+        'List tasks on the kanban board, optionally filtered by column, priority, and assignee. Results are sorted by priority (P0 first) then by creation date (oldest first).',
       inputSchema: {
         column: z
           .string()
@@ -86,6 +86,17 @@ export function registerTools(server: McpServer, store: BoardStore): void {
           .describe(
             'Filter tasks by priority level: P0 = urgent/critical, P1 = normal, P2 = low priority',
           ),
+        assignee: z
+          .string()
+          .optional()
+          .describe('Filter tasks by assignee name (case-insensitive match)'),
+        max: z
+          .number()
+          .int()
+          .min(1)
+          .max(1000)
+          .optional()
+          .describe('Maximum number of tasks to return (default: 10)'),
       },
       outputSchema: {
         tasks: z.array(z.object(taskOutputSchema)),
@@ -97,7 +108,7 @@ export function registerTools(server: McpServer, store: BoardStore): void {
         openWorldHint: false,
       },
     },
-    async ({ column, priority }) => {
+    async ({ column, priority, assignee, max }) => {
       const targetColumn = column ?? columnNames[0];
       if (!store.getColumnNames().includes(targetColumn)) {
         return {
@@ -115,6 +126,21 @@ export function registerTools(server: McpServer, store: BoardStore): void {
       if (priority) {
         tasks = tasks.filter((t) => t.priority === priority);
       }
+
+      if (assignee) {
+        const lowerAssignee = assignee.toLowerCase();
+        tasks = tasks.filter((t) => t.assignee.toLowerCase() === lowerAssignee);
+      }
+
+      // Sort by priority ascending (P0 first), then by created date ascending (oldest first)
+      tasks.sort((a, b) => {
+        const priorityCompare = a.priority.localeCompare(b.priority);
+        if (priorityCompare !== 0) return priorityCompare;
+        return a.createdAt.localeCompare(b.createdAt);
+      });
+
+      const limit = max ?? 10;
+      tasks = tasks.slice(0, limit);
 
       const structuredContent = { tasks };
       return {
