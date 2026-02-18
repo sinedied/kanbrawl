@@ -69,9 +69,9 @@ npm run watch:ext    # Watch-build VS Code extension
 npm run clean        # Remove dist/
 ```
 
-- Dev server runs on port 3000 (Express API/MCP/SSE)
+- Dev server runs on port 8431 (Express API/MCP/SSE)
 - Dev client runs on port 5173 (Vite with proxy to Express)
-- Production: single Express server on port 3000 serves everything
+- Production: single Express server on port 8431 serves everything (auto-fallback to random port if busy)
 
 ## Linting
 
@@ -148,6 +148,7 @@ The `kanbrawl` CLI (also aliased as `kb`) provides the following commands:
 kanbrawl                    # Start HTTP server (default)
 kanbrawl start              # Start HTTP server
 kanbrawl start --stdio      # Start MCP server over stdio transport
+kanbrawl start -p 9000      # Start HTTP server on port 9000
 kanbrawl task "title"       # Create a task
 kanbrawl task "title" -u    # Update existing task by title match
 kanbrawl init               # Interactive setup for AI tools
@@ -188,3 +189,4 @@ NEVER read the TODO file, it's only a scratchpad.
 - Set your name as assignee when you start working on a task
 - Move tasks between columns with \`move_task\` to track progress
 - Proceed with task execution one at a time, till it's done or blocked then move to the next one
+- Don't forget to update the task status when you work on a task, so others know it's being worked on.

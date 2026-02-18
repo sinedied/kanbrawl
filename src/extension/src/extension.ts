@@ -1,4 +1,5 @@
 import process from 'node:process';
+import * as net from 'node:net';
 import * as cp from 'node:child_process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
@@ -6,8 +7,7 @@ import * as vscode from 'vscode';
 import { KanbrawlApiClient } from './api.js';
 import { BoardTreeProvider, type BoardItem } from './board-provider.js';
 
-const DEFAULT_PORT = 3000;
-
+let serverPort: number | undefined;
 let serverProcess: cp.ChildProcess | undefined;
 let apiClient: KanbrawlApiClient | undefined;
 let treeProvider: BoardTreeProvider | undefined;
@@ -30,7 +30,22 @@ function hasKanbrawlJson(): boolean {
 }
 
 function getServerUrl(): string {
-  return `http://localhost:${DEFAULT_PORT}`;
+  return `http://localhost:${serverPort}`;
+}
+
+async function findAvailablePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.once('listening', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close(() => {
+        resolve(port);
+      });
+    });
+    server.listen(0);
+  });
 }
 
 async function waitForServer(
@@ -69,13 +84,9 @@ async function isServerRunning(url: string): Promise<boolean> {
 }
 
 async function startServer(context: vscode.ExtensionContext): Promise<boolean> {
+  // Always pick an unused port to avoid conflicts
+  serverPort = await findAvailablePort();
   const url = getServerUrl();
-
-  // Check if server is already running (e.g. from another window or manual start)
-  if (await isServerRunning(url)) {
-    updateStatusBar('running');
-    return true;
-  }
 
   const root = getWorkspaceRoot();
   if (!root) {
@@ -87,7 +98,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<boolean> {
       cwd: root,
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
-      env: { ...process.env, PORT: String(DEFAULT_PORT) },
+      env: { ...process.env, PORT: String(serverPort) },
     });
 
     serverProcess = proc;

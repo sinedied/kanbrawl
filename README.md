@@ -59,7 +59,7 @@ To launch the web UI and HTTP MCP server:
 npx kanbrawl start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the board.
+Open [http://localhost:8431](http://localhost:8431) to view the board.
 
 ### Manual MCP Configuration
 
@@ -85,7 +85,7 @@ If you prefer to configure your MCP client manually instead of using `kanbrawl i
   "mcpServers": {
     "kanbrawl": {
       "type": "http",
-      "url": "http://localhost:3000/mcp"
+      "url": "http://localhost:8431/mcp"
     }
   }
 }
@@ -99,6 +99,7 @@ The `kanbrawl` CLI (also aliased as `kb`) provides the following commands:
 kanbrawl                    # Start HTTP server (default)
 kanbrawl start              # Start HTTP server
 kanbrawl start --stdio      # Start MCP server over stdio transport
+kanbrawl start -p 9000      # Start HTTP server on port 9000
 kanbrawl task "title"       # Create a task
 kanbrawl task "title" -u    # Update existing task by title match
 kanbrawl init               # Interactive setup for AI tools
@@ -212,7 +213,7 @@ npm run dev
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Server | [localhost:3000](http://localhost:3000) | API, MCP, SSE |
+| Server | [localhost:8431](http://localhost:8431) | API, MCP, SSE |
 | Client | [localhost:5173](http://localhost:5173) | Vite dev with proxy |
 
 ### Build

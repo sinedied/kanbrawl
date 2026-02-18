@@ -23,6 +23,7 @@ export function run(arguments_: string[]): void {
     .command('start', { isDefault: true })
     .description('start the Kanbrawl server')
     .option('--stdio', 'use stdio transport for MCP (instead of HTTP server)')
+    .option('-p, --port <number>', 'port to listen on (default: 8431)')
     .action(startAction);
 
   program

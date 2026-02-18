@@ -1,4 +1,5 @@
 import process from 'node:process';
+import { createServer } from 'node:net';
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,43 @@ import { createApiRouter } from './api.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+export const DEFAULT_PORT = 8431;
+
+async function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = createServer();
+    server.once('error', () => {
+      resolve(false);
+    });
+    server.once('listening', () => {
+      server.close(() => {
+        resolve(true);
+      });
+    });
+    server.listen(port);
+  });
+}
+
+async function findAvailablePort(preferred: number): Promise<number> {
+  if (await isPortAvailable(preferred)) {
+    return preferred;
+  }
+
+  // Let the OS assign a random available port
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once('error', reject);
+    server.once('listening', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close(() => {
+        resolve(port);
+      });
+    });
+    server.listen(0);
+  });
+}
+
 export function createMcpServer(store: BoardStore): McpServer {
   const mcpServer = new McpServer({
     name: 'kanbrawl-mcp-server',
@@ -25,6 +63,7 @@ export function createMcpServer(store: BoardStore): McpServer {
 
 export type ServerOptions = {
   stdio?: boolean;
+  port?: number;
 };
 
 export async function startServer(
@@ -93,7 +132,14 @@ export async function startServer(
   }
 
   // Start server
-  const port = Number.parseInt(process.env.PORT ?? '3000', 10);
+  const requestedPort =
+    options.port ??
+    Number.parseInt(process.env.PORT ?? String(DEFAULT_PORT), 10);
+  const port = await findAvailablePort(requestedPort);
+  if (port !== requestedPort) {
+    log(`⚠️  Port ${requestedPort} is in use, using port ${port} instead`);
+  }
+
   const server = app.listen(port, () => {
     log(`🥊 Kanbrawl server running on http://localhost:${port}`);
     if (!options.stdio) {
