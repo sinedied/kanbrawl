@@ -4,6 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Server } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import { BoardStore } from './store.js';
@@ -22,33 +23,50 @@ export function createMcpServer(store: BoardStore): McpServer {
   return mcpServer;
 }
 
-export function startServer(): Server {
+export type ServerOptions = {
+  stdio?: boolean;
+};
+
+export async function startServer(
+  options: ServerOptions = {},
+): Promise<Server> {
+  const log = options.stdio
+    ? console.error.bind(console)
+    : console.log.bind(console);
+
   // --- Initialize core services ---
   const store = new BoardStore();
   const sse = new SSEManager();
+  const mcpServer = createMcpServer(store);
 
   // Wire SSE to store events
   store.onChange((event) => {
     sse.broadcast(event);
   });
 
-  // --- MCP Server ---
-  const mcpServer = createMcpServer(store);
+  // --- MCP Transport ---
+  if (options.stdio) {
+    // Stdio transport for AI tool integrations
+    const transport = new StdioServerTransport();
+    await mcpServer.connect(transport);
+  }
 
   // --- Express App ---
   const app = express();
   app.use(express.json());
 
-  // MCP Streamable HTTP endpoint
-  app.post('/mcp', async (request, res) => {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true,
+  // MCP Streamable HTTP endpoint (only when not using stdio transport)
+  if (!options.stdio) {
+    app.post('/mcp', async (request, res) => {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+        enableJsonResponse: true,
+      });
+      res.on('close', async () => transport.close());
+      await mcpServer.connect(transport);
+      await transport.handleRequest(request, res, request.body);
     });
-    res.on('close', async () => transport.close());
-    await mcpServer.connect(transport);
-    await transport.handleRequest(request, res, request.body);
-  });
+  }
 
   // SSE endpoint for live updates
   app.get('/events', (request, res) => {
@@ -77,8 +95,12 @@ export function startServer(): Server {
   // Start server
   const port = Number.parseInt(process.env.PORT ?? '3000', 10);
   const server = app.listen(port, () => {
-    console.log(`🥊 Kanbrawl server running on http://localhost:${port}`);
-    console.log(`   MCP endpoint: http://localhost:${port}/mcp`);
+    log(`🥊 Kanbrawl server running on http://localhost:${port}`);
+    if (!options.stdio) {
+      log(`   MCP endpoint: http://localhost:${port}/mcp`);
+    }
+
+    log(`   MCP transport: ${options.stdio ? 'stdio' : 'HTTP'}`);
   });
 
   return server;
