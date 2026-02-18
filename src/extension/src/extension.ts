@@ -4,7 +4,7 @@ import * as cp from 'node:child_process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as vscode from 'vscode';
-import { KanbrawlApiClient } from './api.js';
+import { KanbrawlApiClient, type ConnectionState } from './api.js';
 import { BoardTreeProvider, type BoardItem } from './board-provider.js';
 
 let serverPort: number | undefined;
@@ -168,8 +168,7 @@ function stopServer(): void {
 
 function createStatusBar(): vscode.StatusBarItem {
   const item = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    50,
+    vscode.StatusBarAlignment.Right
   );
   item.command = 'kanbrawl.openWebUI';
   updateStatusBarItem(item, 'starting');
@@ -185,18 +184,23 @@ function updateStatusBarItem(
     case 'starting': {
       item.text = '$(loading~spin) Kanbrawl';
       item.tooltip = 'Kanbrawl server starting…';
+      item.backgroundColor = undefined;
       break;
     }
 
     case 'running': {
-      item.text = '$(check) Kanbrawl';
+      item.text = '$(circle-filled) Kanbrawl';
       item.tooltip = `Kanbrawl server running on ${getServerUrl()}`;
+      item.backgroundColor = undefined;
       break;
     }
 
     case 'stopped': {
-      item.text = '$(x) Kanbrawl';
+      item.text = '$(circle-filled) Kanbrawl';
       item.tooltip = 'Kanbrawl server stopped';
+      item.backgroundColor = new vscode.ThemeColor(
+        'statusBarItem.errorBackground',
+      );
       break;
     }
   }
@@ -205,6 +209,22 @@ function updateStatusBarItem(
 function updateStatusBar(status: 'starting' | 'running' | 'stopped'): void {
   if (statusBarItem) {
     updateStatusBarItem(statusBarItem, status);
+  }
+}
+
+function updateConnectionIndicator(state: ConnectionState): void {
+  if (statusBarItem) {
+    if (state === 'connected') {
+      statusBarItem.text = '$(circle-filled) Kanbrawl';
+      statusBarItem.backgroundColor = undefined;
+      statusBarItem.tooltip = `Kanbrawl server connected on ${getServerUrl()}`;
+    } else {
+      statusBarItem.text = '$(circle-filled) Kanbrawl';
+      statusBarItem.backgroundColor = new vscode.ThemeColor(
+        'statusBarItem.errorBackground',
+      );
+      statusBarItem.tooltip = 'Kanbrawl server disconnected';
+    }
   }
 }
 
@@ -309,9 +329,14 @@ async function setupBoard(context: vscode.ExtensionContext): Promise<void> {
   // Load initial board data
   if (serverReady) {
     await treeProvider?.loadBoard();
-    apiClient.connectSSE((event) => {
-      treeProvider?.handleEvent(event);
-    });
+    apiClient.connectSSE(
+      (event) => {
+        treeProvider?.handleEvent(event);
+      },
+      (state) => {
+        updateConnectionIndicator(state);
+      },
+    );
   }
 
   // MCP server registration

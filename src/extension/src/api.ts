@@ -39,14 +39,30 @@ export type BoardEvent =
 
 // ── REST API client ─────────────────────────────────────────────────
 
+export type ConnectionState = 'connected' | 'disconnected';
+
 export class KanbrawlApiClient {
   private sseRequest: http.ClientRequest | undefined;
   private reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   private reconnectDelay = 1000;
   private disposed = false;
   private onEvent: ((event: BoardEvent) => void) | undefined;
+  private onConnectionChange: ((state: ConnectionState) => void) | undefined;
+
+  private _connectionState: ConnectionState = 'disconnected';
 
   constructor(private readonly baseUrl: string) {}
+
+  get connectionState(): ConnectionState {
+    return this._connectionState;
+  }
+
+  private setConnectionState(state: ConnectionState): void {
+    if (this._connectionState !== state) {
+      this._connectionState = state;
+      this.onConnectionChange?.(state);
+    }
+  }
 
   private get maxReconnectDelay() {
     return 30_000;
@@ -128,8 +144,12 @@ export class KanbrawlApiClient {
 
   // ── SSE connection ──────────────────────────────────────────────
 
-  connectSSE(onEvent: (event: BoardEvent) => void): void {
+  connectSSE(
+    onEvent: (event: BoardEvent) => void,
+    onConnectionChange?: (state: ConnectionState) => void,
+  ): void {
     this.onEvent = onEvent;
+    this.onConnectionChange = onConnectionChange;
     this.disposed = false;
     this.startSSE();
   }
@@ -155,11 +175,13 @@ export class KanbrawlApiClient {
 
     this.sseRequest = http.request(options, (res) => {
       if (res.statusCode !== 200) {
+        this.setConnectionState('disconnected');
         this.scheduleReconnect();
         return;
       }
 
       this.reconnectDelay = 1000;
+      this.setConnectionState('connected');
       let buffer = '';
 
       res.setEncoding('utf8');
@@ -175,15 +197,18 @@ export class KanbrawlApiClient {
       });
 
       res.on('end', () => {
+        this.setConnectionState('disconnected');
         this.scheduleReconnect();
       });
 
       res.on('error', () => {
+        this.setConnectionState('disconnected');
         this.scheduleReconnect();
       });
     });
 
     this.sseRequest.on('error', () => {
+      this.setConnectionState('disconnected');
       this.scheduleReconnect();
     });
 
@@ -241,5 +266,6 @@ export class KanbrawlApiClient {
   dispose(): void {
     this.disposed = true;
     this.closeSSE();
+    this.setConnectionState('disconnected');
   }
 }
