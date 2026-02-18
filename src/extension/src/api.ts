@@ -61,6 +61,35 @@ export class KanbrawlApiClient {
     return response.json() as Promise<KanbrawlData>;
   }
 
+  async createTask(fields: {
+    title: string;
+    description?: string;
+    column?: string;
+    priority?: string;
+    assignee?: string;
+  }): Promise<Task> {
+    const response = await fetch(`${this.baseUrl}/api/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
+    });
+    if (!response.ok) {
+      const error = (await response.json()) as { error?: string };
+      throw new Error(error.error ?? 'Failed to create task');
+    }
+
+    return response.json() as Promise<Task>;
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/tasks/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete task');
+    }
+  }
+
   async moveTask(id: string, column: string): Promise<Task> {
     const response = await fetch(`${this.baseUrl}/api/tasks/${id}`, {
       method: 'PATCH',

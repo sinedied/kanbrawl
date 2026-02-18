@@ -33,15 +33,15 @@
       "kanbrawl": [
         {
           "id": "kanbrawlBoard",
-          "name": "Board",
-          "contextualTitle": "Kanbrawl"
+          "name": "Kanbrawl"
         }
       ]
     },
     "viewsWelcome": [
       {
         "view": "kanbrawlBoard",
-        "contents": "No kanbrawl.json found in this workspace.\n[Initialize Kanbrawl](command:kanbrawl.init)"
+        "contents": "No kanbrawl.json found in this workspace.\n[Initialize Kanbrawl](command:kanbrawl.init)",
+        "when": "!kanbrawl.hasBoard"
       }
     ],
     "commands": [
@@ -67,31 +67,74 @@
         "command": "kanbrawl.init",
         "title": "Initialize Board",
         "category": "Kanbrawl"
+      },
+      {
+        "command": "kanbrawl.addTask",
+        "title": "Add Task",
+        "category": "Kanbrawl",
+        "icon": "$(add)"
+      },
+      {
+        "command": "kanbrawl.editTask",
+        "title": "Edit Task",
+        "category": "Kanbrawl",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "kanbrawl.deleteTask",
+        "title": "Delete Task",
+        "category": "Kanbrawl",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
       "view/title": [
         {
+          "command": "kanbrawl.addTask",
+          "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
+          "group": "navigation@0"
+        },
+        {
           "command": "kanbrawl.openWebUI",
-          "when": "view == kanbrawlBoard",
+          "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
           "group": "navigation@1"
         },
         {
           "command": "kanbrawl.refresh",
-          "when": "view == kanbrawlBoard",
+          "when": "view == kanbrawlBoard && kanbrawl.hasBoard",
           "group": "navigation@2"
         }
       ],
       "view/item/context": [
+        {
+          "command": "kanbrawl.addTask",
+          "when": "view == kanbrawlBoard && viewItem == column",
+          "group": "inline"
+        },
         {
           "command": "kanbrawl.moveTask",
           "when": "view == kanbrawlBoard && viewItem == task",
           "group": "inline"
         },
         {
+          "command": "kanbrawl.addTask",
+          "when": "view == kanbrawlBoard && viewItem == column",
+          "group": "1_add"
+        },
+        {
+          "command": "kanbrawl.editTask",
+          "when": "view == kanbrawlBoard && viewItem == task",
+          "group": "1_edit"
+        },
+        {
           "command": "kanbrawl.moveTask",
           "when": "view == kanbrawlBoard && viewItem == task",
           "group": "1_move"
+        },
+        {
+          "command": "kanbrawl.deleteTask",
+          "when": "view == kanbrawlBoard && viewItem == task",
+          "group": "2_delete"
         }
       ]
     }

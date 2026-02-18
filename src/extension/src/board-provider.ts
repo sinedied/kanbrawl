@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   type Task,
@@ -10,17 +11,15 @@ import {
 
 // ── Priority icons ──────────────────────────────────────────────────
 
-const PRIORITY_ICONS: Record<Priority, vscode.ThemeIcon> = {
-  P0: new vscode.ThemeIcon(
-    'circle-filled',
-    new vscode.ThemeColor('charts.red'),
-  ),
-  P1: new vscode.ThemeIcon(
-    'circle-outline',
-    new vscode.ThemeColor('charts.yellow'),
-  ),
-  P2: new vscode.ThemeIcon('circle-large-outline'),
-};
+function createPriorityIcons(
+  extensionPath: string,
+): Record<Priority, vscode.Uri> {
+  return {
+    P0: vscode.Uri.file(path.join(extensionPath, 'media', 'priority-0.svg')),
+    P1: vscode.Uri.file(path.join(extensionPath, 'media', 'priority-1.svg')),
+    P2: vscode.Uri.file(path.join(extensionPath, 'media', 'priority-2.svg')),
+  };
+}
 
 // ── Tree item types ─────────────────────────────────────────────────
 
@@ -87,12 +86,25 @@ export class BoardTreeProvider
 
   // State
   private board: KanbrawlData = { columns: [], tasks: [] };
+  private readonly priorityIcons: Record<Priority, vscode.Uri>;
+  private api: KanbrawlApiClient | undefined;
 
-  constructor(private readonly api: KanbrawlApiClient) {}
+  constructor(extensionPath: string, api?: KanbrawlApiClient) {
+    this.priorityIcons = createPriorityIcons(extensionPath);
+    this.api = api;
+  }
+
+  setApiClient(api: KanbrawlApiClient): void {
+    this.api = api;
+  }
 
   // ── Data loading ────────────────────────────────────────────────
 
   async loadBoard(): Promise<void> {
+    if (!this.api) {
+      return;
+    }
+
     try {
       this.board = await this.api.getBoard();
       this._onDidChangeTreeData.fire();
@@ -162,8 +174,8 @@ export class BoardTreeProvider
           ? vscode.TreeItemCollapsibleState.Expanded
           : vscode.TreeItemCollapsibleState.Collapsed,
       );
+      item.id = `column:${column.name}`;
       item.contextValue = 'column';
-      item.iconPath = new vscode.ThemeIcon('layout');
       item.tooltip = `${column.name} — sorted by ${column.sortBy} (${column.sortOrder})`;
       return item;
     }
@@ -176,7 +188,7 @@ export class BoardTreeProvider
     );
     item.id = task.id;
     item.contextValue = 'task';
-    item.iconPath = PRIORITY_ICONS[task.priority] ?? PRIORITY_ICONS.P1;
+    item.iconPath = this.priorityIcons[task.priority] ?? this.priorityIcons.P1;
     item.description = task.assignee || undefined;
 
     const lines = [`**${task.priority}** — ${task.title}`];
@@ -256,10 +268,11 @@ export class BoardTreeProvider
     dataTransfer: vscode.DataTransfer,
     _token: vscode.CancellationToken,
   ): Promise<void> {
-    if (!target) {
+    if (!target || !this.api) {
       return;
     }
 
+    const { api } = this;
     const transferItem = dataTransfer.get(TREE_MIME);
     if (!transferItem) {
       return;
@@ -271,7 +284,7 @@ export class BoardTreeProvider
 
     const moves = taskIds.map(async (id) => {
       try {
-        await this.api.moveTask(id, targetColumn);
+        await api.moveTask(id, targetColumn);
       } catch (error) {
         void vscode.window.showErrorMessage(
           `Failed to move task: ${error instanceof Error ? error.message : String(error)}`,
